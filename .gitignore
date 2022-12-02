@@ -1,0 +1,8 @@
+/node_modules
+/.idea
+/.vscode
+/.env
+/yarn-debug.log*
+/yarn-error.log*
+/files/**
+!/files/.gitkeep

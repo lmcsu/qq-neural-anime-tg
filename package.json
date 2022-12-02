@@ -1,0 +1,23 @@
+{
+    "name": "qq-neural-anime-tg",
+    "private": "true",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "dependencies": {
+        "axios": "^1.2.0",
+        "dotenv": "^16.0.3",
+        "telegraf": "^4.11.2",
+        "ts-node": "^10.9.1",
+        "typescript": "^4.9.3",
+        "uuid": "^9.0.0"
+    },
+    "devDependencies": {
+        "@types/axios": "^0.14.0",
+        "@types/node": "^18.11.10",
+        "@types/uuid": "^9.0.0"
+    },
+    "scripts": {
+        "start": "ts-node ./index.ts"
+    }
+}
