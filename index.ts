@@ -101,10 +101,25 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
     try {
         const url = await ctx.telegram.getFileLink(photoId);
 
-        const response = await axios.request({
-            url: url.href,
-            responseType: 'arraybuffer',
-        });
+        let response;
+        for (let retry = 0; retry < 100; retry++) {
+            try {
+                response = await axios.request({
+                    url: url.href,
+                    timeout: 10000,
+                    responseType: 'arraybuffer',
+                });
+            } catch (e) {}
+
+            if (response?.data) {
+                break;
+            }
+        }
+
+        if (!response) {
+            console.log('Couldn\'t load the photo from ' + userId);
+            throw new Error('Couldn\'t load the photo, please try again');
+        }
 
         const fn = __dirname + '/files/' + (new Date()).getTime() + '_' + userId + '_input.jpg';
         fs.writeFile(fn, response.data);
