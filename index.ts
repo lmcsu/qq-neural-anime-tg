@@ -57,6 +57,10 @@ const qqRequest = async (imgData: string) => {
             await new Promise((resolve) => setTimeout(resolve, 3000));
         }
 
+        if (data?.code === 1001) {
+            throw new Error('No face in image');
+        }
+
         if (data?.extra) {
             break;
         }
