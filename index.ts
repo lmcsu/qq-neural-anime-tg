@@ -75,7 +75,7 @@ const qqRequest = async (imgData: string) => {
 
 const qqDownload = async (url: string): Promise<NodeJS.ArrayBufferView> => {
     let response;
-    for (let retry = 0; retry < 10; retry++) {
+    for (let retry = 0; retry < 100; retry++) {
         try {
             response = await axios.request({
                 url,
