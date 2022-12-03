@@ -155,6 +155,7 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
         ]);
         console.log('Files sent to ' + userId);
 
+        await fs.unlink(videoFn);
         await ctx.reply('Done');
     } catch (e) {
         ctx.reply('Some nasty error has occurred\n\n' + (e as Error).toString()).catch(e => e);
