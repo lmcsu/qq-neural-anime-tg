@@ -12,32 +12,12 @@ import fs from 'fs/promises';
 
 dotenv.config();
 
-const qqQueue: Array<{
-    uuid: string;
-}> = [];
-
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();
 
-    qqQueue.push({
-        uuid,
-    });
-
-    await new Promise<void>((resolve) => {
-        const checkIndex = () => {
-            const index = qqQueue.findIndex((item) => item.uuid === uuid);
-            if (index === 0) {
-                setTimeout(resolve, 1000);
-            } else {
-                setTimeout(checkIndex, 100);
-            }
-        };
-        checkIndex();
-    });
-
     let response;
     let data;
-    for (let retry = 0; retry < 10; retry++) {
+    for (let retry = 0; retry < 100; retry++) {
         try {
             response = await axios.request({
                 method: 'POST',
@@ -68,7 +48,6 @@ const qqRequest = async (imgData: string) => {
         data = response?.data as Record<string, unknown> | undefined;
 
         if (data?.msg === 'IMG_ILLEGAL') {
-            qqQueue.shift();
             throw new Error('Couldn\'t pass the censorship. Try another photo.');
         }
 
@@ -83,7 +62,6 @@ const qqRequest = async (imgData: string) => {
         }
     }
 
-    qqQueue.shift();
     if (data?.extra) {
         const extra = JSON.parse(data.extra as string);
         return {
