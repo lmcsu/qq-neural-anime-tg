@@ -211,10 +211,6 @@ const shutDown = async (reason: string) => {
     }
     shuttingDown = true;
 
-    await Promise.all(userSessions.map((session) => {
-        return session.ctx.reply('Oops, the bot goes down, please retry a bit later').catch((e) => e);
-    }));
-
     bot.stop(reason);
 };
 
