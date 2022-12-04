@@ -158,12 +158,12 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
             );
         }
 
+        await ctx.reply('Photo has been received, please wait');
+
         console.log('Uploading to QQ for ' + userId);
-        await ctx.reply('Photo has been received, uploading to QQ');
         const urls = await qqRequest(response.data.toString('base64'));
         console.log('QQ responded successfully for ' + userId);
 
-        await ctx.reply('Downloading the result from QQ');
         console.log('Downloading from QQ for ' + userId);
         const [videoData, imgData] = await Promise.all([
             qqDownload(urls.video),
