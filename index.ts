@@ -5,6 +5,7 @@ type UserSession = {
 };
 
 import { Telegraf, Context } from 'telegraf';
+import { telegrafThrottler } from 'telegraf-throttler';
 import dotenv from 'dotenv';
 import { v4 as v4uuid } from 'uuid';
 import axios, { type AxiosError } from 'axios';
@@ -220,6 +221,8 @@ const addUserSession = async (userId: number, photoId: string, ctx: Context) => 
 };
 
 const bot = new Telegraf(process.env.BOT_TOKEN || '');
+const throttler = telegrafThrottler();
+bot.use(throttler);
 
 bot.start((ctx) => ctx.reply('Send me the picture you want to convert').catch((e) => e));
 
