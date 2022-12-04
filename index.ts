@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import { v4 as v4uuid } from 'uuid';
 import axios, { type AxiosError } from 'axios';
 import fs from 'fs/promises';
+import path from 'path';
 
 dotenv.config();
 const KEEP_FILES = !!(+(process.env.KEEP_FILES ?? '1') || 0); // "true" by default
@@ -128,7 +129,7 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
 
         if (KEEP_FILES) {
             fs.writeFile(
-                __dirname + '/files/' + (new Date()).getTime() + '_' + userId + '_input.jpg',
+                path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_input.jpg'),
                 response.data,
             );
         }
@@ -147,7 +148,7 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
 
         if (KEEP_FILES) {
             fs.writeFile(
-                __dirname + '/files/' + (new Date()).getTime() + '_' + userId + '_output_img.jpg',
+                path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_output_img.jpg'),
                 imgData,
             );
         }
