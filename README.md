@@ -7,9 +7,10 @@ Demo: https://t.me/qq_neural_anime_bot
 ![Example](example.jpg)
 
 # Running your own bot
+You need to have Node.js and Yarn installed
 - run `yarn install`
 - copy `.env.example` to `.env`
-- put yout bot's token from BotFather into `.env`
+- put your bot's token from BotFather into `.env`
 - run `yarn start`
 
 # Notes
