@@ -11,6 +11,7 @@ import axios, { type AxiosError } from 'axios';
 import fs from 'fs/promises';
 
 dotenv.config();
+const KEEP_FILES = !!(+(process.env.KEEP_FILES ?? '1') || 0); // "true" by default
 
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();
@@ -125,8 +126,12 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
             throw new Error('Couldn\'t load the photo, please try again');
         }
 
-        const fn = __dirname + '/files/' + (new Date()).getTime() + '_' + userId + '_input.jpg';
-        fs.writeFile(fn, response.data);
+        if (KEEP_FILES) {
+            fs.writeFile(
+                __dirname + '/files/' + (new Date()).getTime() + '_' + userId + '_input.jpg',
+                response.data,
+            );
+        }
 
         console.log('Uploading to QQ for ' + userId);
         await ctx.reply('Photo has been received, uploading to QQ');
@@ -140,9 +145,12 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
             qqDownload(urls.img),
         ]);
 
-        const time = (new Date()).getTime();
-        const imgFn = __dirname + '/files/' + time + '_' + userId + '_output_img.jpg';
-        fs.writeFile(imgFn, imgData);
+        if (KEEP_FILES) {
+            fs.writeFile(
+                __dirname + '/files/' + (new Date()).getTime() + '_' + userId + '_output_img.jpg',
+                imgData,
+            );
+        }
 
         await Promise.all([
             ctx.replyWithPhoto({

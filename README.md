@@ -16,5 +16,5 @@ You need to have Node.js and Yarn installed
 # Notes
 - Probably the whole thing is going to break soon anyway
 - Fork it and make your own version, because I don't think that I'm going to support it in the future
-- For now you have to do something with the files folder by yourself
+- If you don't want to keep image files, set KEEP_FILES=0 in your `.env` file
 - Contact me at Telegram: https://t.me/royvolkov
