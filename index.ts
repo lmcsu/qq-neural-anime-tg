@@ -77,7 +77,7 @@ const qqRequest = async (imgData: string) => {
     }
 };
 
-const qqDownload = async (url: string): Promise<NodeJS.ArrayBufferView> => {
+const qqDownload = async (url: string): Promise<Buffer> => {
     let response;
     for (let retry = 0; retry < 100; retry++) {
         try {
@@ -141,24 +141,19 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
         ]);
 
         const time = (new Date()).getTime();
-        const videoFn = __dirname + '/files/' + time + '_' + userId + '_output_video.mp4';
         const imgFn = __dirname + '/files/' + time + '_' + userId + '_output_img.jpg';
-        await Promise.all([
-            fs.writeFile(videoFn, videoData),
-            fs.writeFile(imgFn, imgData),
-        ]);
+        fs.writeFile(imgFn, imgData);
 
         await Promise.all([
             ctx.replyWithPhoto({
-                source: imgFn,
+                source: imgData,
             }),
             ctx.replyWithVideo({
-                source: videoFn,
+                source: videoData,
             }),
         ]);
         console.log('Files sent to ' + userId);
 
-        await fs.unlink(videoFn);
         await ctx.reply('Done.\nPlease, rate and fork me on Github ♥️ https://github.com/lmcsu/qq-neural-anime-tg', {
             disable_web_page_preview: true,
         });
