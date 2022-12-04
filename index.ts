@@ -10,6 +10,7 @@ import { v4 as v4uuid } from 'uuid';
 import axios, { type AxiosError } from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
+import sharp from 'sharp';
 
 dotenv.config();
 const KEEP_FILES = !!(+(process.env.KEEP_FILES ?? '1') || 0); // "true" by default
@@ -103,6 +104,28 @@ const qqDownload = async (url: string): Promise<Buffer> => {
 
 const userSessions: Array<UserSession> = [];
 
+const cropImage = async (imgData: Buffer): Promise<Buffer> => {
+    const img = await sharp(imgData);
+    const meta = await img.metadata();
+    const width = meta.width || 0;
+    const height = meta.height || 0;
+
+    let cropHeight;
+    if (width > height) {
+        cropHeight = 177;
+    } else {
+        cropHeight = 182;
+    }
+
+    return img.extract({
+        top: 0,
+        left: 0,
+        width,
+        height: height - cropHeight,
+    })
+        .toBuffer();
+}
+
 const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
     try {
         const url = await ctx.telegram.getFileLink(photoId);
@@ -143,7 +166,8 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
         console.log('Downloading from QQ for ' + userId);
         const [videoData, imgData] = await Promise.all([
             qqDownload(urls.video),
-            qqDownload(urls.img),
+            qqDownload(urls.img)
+                .then((data) => cropImage(data)),
         ]);
 
         if (KEEP_FILES) {
