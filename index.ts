@@ -149,7 +149,6 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
         ]);
 
         await Promise.all([
-            ctx.reply('Uploading to Telegram'),
             ctx.replyWithPhoto({
                 source: imgFn,
             }),
