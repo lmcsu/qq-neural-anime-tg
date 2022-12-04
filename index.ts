@@ -178,19 +178,22 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
             );
         }
 
-        await Promise.all([
-            ctx.replyWithPhoto({
-                source: imgData,
-            }),
-            ctx.replyWithVideo({
-                source: videoData,
-            }),
+        await ctx.replyWithMediaGroup([
+            {
+                type: 'photo',
+                media: {
+                    source: imgData,
+                },
+                caption: 'Done.\nPlease, rate and fork me on Github ♥️ https://github.com/lmcsu/qq-neural-anime-tg',
+            },
+            {
+                type: 'video',
+                media: {
+                    source: videoData,
+                },
+            },
         ]);
         console.log('Files sent to ' + userId);
-
-        await ctx.reply('Done.\nPlease, rate and fork me on Github ♥️ https://github.com/lmcsu/qq-neural-anime-tg', {
-            disable_web_page_preview: true,
-        });
     } catch (e) {
         ctx.reply('Some nasty error has occurred\n\n' + (e as Error).toString()).catch(e => e);
         console.log('Error has occurred for ' + userId);
