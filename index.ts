@@ -209,6 +209,10 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 break;
             } catch (e) {
                 console.error('Unable to send media for ' + userId, (e as Error).toString());
+
+                if ((e as Error).toString().includes('replied message not found')) {
+                    throw new Error('Photo has been deleted');
+                }
             }
 
             await new Promise((resolve) => setTimeout(resolve, 1000));
