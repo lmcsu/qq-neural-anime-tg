@@ -3,6 +3,7 @@ import type { Context } from 'telegraf';
 declare global {
     type Config = {
         botToken: string;
+        botUsername: `@${string}`;
         keepFiles: boolean;
     };
 

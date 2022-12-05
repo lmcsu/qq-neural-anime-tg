@@ -177,7 +177,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 media: {
                     source: imgData,
                 },
-                caption: 'Done.\nPlease, rate and fork me on Github ♥️ https://github.com/lmcsu/qq-neural-anime-tg',
+                caption: config.botUsername,
             },
             {
                 type: 'video',
