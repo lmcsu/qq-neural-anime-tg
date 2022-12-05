@@ -1,5 +1,6 @@
 # What is this
 A Telegram bot for making anime-styled pictures and videos from your source.
+
 It's a simple bridge between Telegram and https://h5.tu.qq.com/web/ai-2d/cartoon/index
 
 Demo: https://t.me/qq_neural_anime_bot
@@ -12,6 +13,12 @@ You need to have Node.js and NPM installed
 - copy `config.example.ts` to `config.ts`
 - put your bot's token from BotFather into `config.ts`
 - run `npm start`
+
+# Upgraging
+- don't forget to run `npm install`
+
+### from 1.x to 2.x
+- support for `.env` files dropped, you have to move to the `config.ts` file
 
 # Notes
 - Probably the whole thing is going to break soon anyway
