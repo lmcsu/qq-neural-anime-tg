@@ -23,5 +23,5 @@ You need to have Node.js and NPM installed
 # Notes
 - Probably the whole thing is going to break soon anyway
 - Fork it and make your own version, because I don't think that I'm going to support it in the future
-- If you don't want to keep image files, set `keepFiles: false` in your `config.ts` file
+- If you want to keep image files, set `keepFiles: true` in your `config.ts` file
 - Contact me at Telegram: https://t.me/royvolkov
