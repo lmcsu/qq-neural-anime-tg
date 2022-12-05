@@ -9,12 +9,12 @@ Demo: https://t.me/qq_neural_anime_bot
 # Running your own bot
 You need to have Node.js and Yarn installed
 - run `yarn install`
-- copy `.env.example` to `.env`
-- put your bot's token from BotFather into `.env`
+- copy `config.example.ts` to `config.ts`
+- put your bot's token from BotFather into `config.ts`
 - run `yarn start`
 
 # Notes
 - Probably the whole thing is going to break soon anyway
 - Fork it and make your own version, because I don't think that I'm going to support it in the future
-- If you don't want to keep image files, set KEEP_FILES=0 in your `.env` file
+- If you don't want to keep image files, set `keepFiles: false` in your `config.ts` file
 - Contact me at Telegram: https://t.me/royvolkov

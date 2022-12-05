@@ -1,7 +1,7 @@
 /node_modules
 /.idea
 /.vscode
-/.env
+/config.ts
 /yarn-debug.log*
 /yarn-error.log*
 /files/**

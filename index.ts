@@ -1,14 +1,11 @@
 import { Telegraf, Context } from 'telegraf';
 import { telegrafThrottler } from 'telegraf-throttler';
-import dotenv from 'dotenv';
+import config from './config';
 import { v4 as v4uuid } from 'uuid';
 import axios, { type AxiosError } from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
-
-dotenv.config();
-const KEEP_FILES = !!(+(process.env.KEEP_FILES ?? '1') || 0); // "true" by default
 
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();
@@ -145,7 +142,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             throw new Error('Couldn\'t load the photo, please try again');
         }
 
-        if (KEEP_FILES) {
+        if (config.keepFiles) {
             fs.writeFile(
                 path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_input.jpg'),
                 response.data,
@@ -167,7 +164,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 .then((data) => cropImage(data)),
         ]);
 
-        if (KEEP_FILES) {
+        if (config.keepFiles) {
             fs.writeFile(
                 path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_output_img.jpg'),
                 imgData,
@@ -224,7 +221,7 @@ const addUserSession = async (ctx: Context, userId: number, photoId: string, rep
     await processUserSession(session);
 };
 
-const bot = new Telegraf(process.env.BOT_TOKEN || '');
+const bot = new Telegraf(config.botToken);
 const throttler = telegrafThrottler();
 bot.use(throttler);
 
