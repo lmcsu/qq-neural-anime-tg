@@ -1,7 +1,8 @@
 type UserSession = {
-    userId: number;
     ctx: Context;
+    userId: number;
     photoId: string;
+    replyMessageId: number;
 };
 
 import { Telegraf, Context } from 'telegraf';
@@ -127,7 +128,7 @@ const cropImage = async (imgData: Buffer): Promise<Buffer> => {
         .toBuffer();
 }
 
-const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
+const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: UserSession) => {
     try {
         const url = await ctx.telegram.getFileLink(photoId);
 
@@ -158,7 +159,9 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
             );
         }
 
-        await ctx.reply('Photo has been received, please wait');
+        await ctx.reply('Photo has been received, please wait', {
+            reply_to_message_id: replyMessageId,
+        });
 
         console.log('Uploading to QQ for ' + userId);
         const urls = await qqRequest(response.data.toString('base64'));
@@ -192,7 +195,9 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
                     source: videoData,
                 },
             },
-        ]);
+        ], {
+            reply_to_message_id: replyMessageId,
+        });
         console.log('Files sent to ' + userId);
     } catch (e) {
         ctx.reply('Some nasty error has occurred\n\n' + (e as Error).toString()).catch(e => e);
@@ -205,17 +210,20 @@ const processUserSession = async ({ userId, photoId, ctx }: UserSession) => {
     console.log('Sessions length decreased: ' + userSessions.length);
 };
 
-const addUserSession = async (userId: number, photoId: string, ctx: Context) => {
+const addUserSession = async (ctx: Context, userId: number, photoId: string, replyMessageId: number) => {
     const currentSession = (userSessions.find((session) => session.userId === userId));
     if (currentSession) {
-        await ctx.reply('You are already in the queue, please wait');
+        await ctx.reply('You are already in the queue, please wait', {
+            reply_to_message_id: replyMessageId,
+        });
         return;
     }
 
     const session = {
+        ctx,
         userId,
         photoId,
-        ctx,
+        replyMessageId,
     };
     userSessions.push(session);
     console.log('Sessions length increased: ' + userSessions.length);
@@ -234,7 +242,7 @@ bot.on('photo', (ctx) => {
     console.log('Received photo from ' + userId);
 
     const photoId = [...ctx.update.message.photo].pop()?.file_id || '';
-    addUserSession(userId, photoId, ctx).catch(e => e);
+    addUserSession(ctx, userId, photoId, ctx.update.message.message_id).catch(e => e);
 });
 
 bot.catch((e) => {
