@@ -1,10 +1,3 @@
-type UserSession = {
-    ctx: Context;
-    userId: number;
-    photoId: string;
-    replyMessageId: number;
-};
-
 import { Telegraf, Context } from 'telegraf';
 import { telegrafThrottler } from 'telegraf-throttler';
 import dotenv from 'dotenv';
