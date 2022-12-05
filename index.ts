@@ -171,10 +171,10 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         console.log('QQ responded successfully for ' + userId);
 
         console.log('Downloading from QQ for ' + userId);
-        const [videoData, imgData] = await Promise.all([
-            qqDownload(urls.video),
+        const [imgData, videoData] = await Promise.all([
             qqDownload(urls.img)
                 .then((data) => cropImage(data)),
+            ...((config.sendVideo ?? true) ? [qqDownload(urls.video)] : []),
         ]);
 
         if (config.keepFiles) {
@@ -195,12 +195,12 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                         },
                         caption: config.botUsername,
                     },
-                    {
+                    ...((config.sendVideo ?? true) ? [{
                         type: 'video',
                         media: {
                             source: videoData,
                         },
-                    },
+                    } as const] : []),
                 ], {
                     reply_to_message_id: replyMessageId,
                 });

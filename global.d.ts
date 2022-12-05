@@ -7,6 +7,7 @@ declare global {
         byeMessage?: string;
         helloMessage: string;
         keepFiles: boolean;
+        sendVideo?: boolean;
     };
 
     type UserSession = {
