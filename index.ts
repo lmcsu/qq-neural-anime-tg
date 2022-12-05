@@ -196,6 +196,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         if (config.byeMessage) {
             await ctx.reply(config.byeMessage, {
                 disable_web_page_preview: true,
+                parse_mode: 'MarkdownV2',
             });
         }
     } catch (e) {
@@ -244,6 +245,7 @@ const startBot = () => {
     bot.start((ctx) => {
         ctx.reply(config.helloMessage, {
             disable_web_page_preview: true,
+            parse_mode: 'MarkdownV2',
         })
             .catch((e) => e);
     });

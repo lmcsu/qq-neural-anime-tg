@@ -4,8 +4,7 @@ const config: Config = {
     helloMessage: 'Hi 👋 Send me a photo to convert it into a 2D anime art',
     byeMessage:
         'Thank you for using this bot 👍\n' +
-        'Please rate and fork it on Github ♥️\n' +
-        'https://github.com/lmcsu/qq-neural-anime-tg',
+        'Please rate and fork it on [Github](https://github.com/lmcsu/qq-neural-anime-tg) ♥️',
     keepFiles: false,
 };
 
