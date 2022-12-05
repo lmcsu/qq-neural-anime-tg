@@ -208,10 +208,15 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 mediaSuccessfullySent = true;
                 break;
             } catch (e) {
-                console.error('Unable to send media for ' + userId, (e as Error).toString());
+                const msg = (e as Error).toString();
+                console.error('Unable to send media for ' + userId, msg);
 
-                if ((e as Error).toString().includes('replied message not found')) {
+                if (msg.includes('replied message not found')) {
                     throw new Error('Photo has been deleted');
+                }
+
+                if (msg.includes('bot was blocked by the user')) {
+                    break;
                 }
             }
 
@@ -243,7 +248,12 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 await ctx.reply('Some nasty error has occurred, please try again\n\n' + (e as Error).toString());
                 break;
             } catch (e) {
-                console.error('Unable to send error message for ' + userId, (e as Error).toString());
+                const msg = (e as Error).toString();
+                console.error('Unable to send error message for ' + userId, msg);
+
+                if (msg.includes('bot was blocked by the user')) {
+                    break;
+                }
             }
 
             await new Promise((resolve) => setTimeout(resolve, 1000));
