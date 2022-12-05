@@ -54,12 +54,14 @@ const qqRequest = async (imgData: string) => {
         }
 
         if (data?.code === 1001) {
-            throw new Error('No face in image');
+            throw new Error('Face not found. Try another photo.');
         }
 
         if (data?.extra) {
             break;
         }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     if (data?.extra) {
@@ -79,7 +81,7 @@ const qqDownload = async (url: string): Promise<Buffer> => {
         try {
             response = await axios.request({
                 url,
-                timeout: 10000,
+                timeout: 5000,
                 responseType: 'arraybuffer',
             });
         } catch (e) {
@@ -90,6 +92,8 @@ const qqDownload = async (url: string): Promise<Buffer> => {
         if (response?.data) {
             break;
         }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     return response?.data;
@@ -128,16 +132,18 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             try {
                 response = await axios.request({
                     url: url.href,
-                    timeout: 10000,
+                    timeout: 5000,
                     responseType: 'arraybuffer',
                 });
             } catch (e) {
-                //
+                console.error('Telegram file download error caught: ' + (e as AxiosError).toString());
             }
 
             if (response?.data) {
                 break;
             }
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
         }
 
         if (!response) {
@@ -152,9 +158,13 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             );
         }
 
-        await ctx.reply('Photo has been received, please wait', {
-            reply_to_message_id: replyMessageId,
-        });
+        try {
+            await ctx.reply('Photo has been received, please wait', {
+                reply_to_message_id: replyMessageId,
+            });
+        } catch (e) {
+            console.error('Unable to send "photo received" message for ' + userId, (e as Error).toString());
+        }
 
         console.log('Uploading to QQ for ' + userId);
         const urls = await qqRequest(response.data.toString('base64'));
@@ -174,35 +184,66 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             );
         }
 
-        await ctx.replyWithMediaGroup([
-            {
-                type: 'photo',
-                media: {
-                    source: imgData,
-                },
-                caption: config.botUsername,
-            },
-            {
-                type: 'video',
-                media: {
-                    source: videoData,
-                },
-            },
-        ], {
-            reply_to_message_id: replyMessageId,
-        });
+        let mediaSuccessfullySent = false;
+        for (let retry = 0; retry < 100; retry++) {
+            try {
+                await ctx.replyWithMediaGroup([
+                    {
+                        type: 'photo',
+                        media: {
+                            source: imgData,
+                        },
+                        caption: config.botUsername,
+                    },
+                    {
+                        type: 'video',
+                        media: {
+                            source: videoData,
+                        },
+                    },
+                ], {
+                    reply_to_message_id: replyMessageId,
+                });
+
+                mediaSuccessfullySent = true;
+                break;
+            } catch (e) {
+                console.error('Unable to send media for ' + userId, (e as Error).toString());
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+
+        if (!mediaSuccessfullySent) {
+            throw new Error('Unable to send media, please try again');
+        }
+
         console.log('Files sent to ' + userId);
 
         if (config.byeMessage) {
-            await ctx.reply(config.byeMessage, {
-                disable_web_page_preview: true,
-                parse_mode: 'MarkdownV2',
-            });
+            try {
+                await ctx.reply(config.byeMessage, {
+                    disable_web_page_preview: true,
+                    parse_mode: 'MarkdownV2',
+                });
+            } catch (e) {
+                console.error('Unable to send byeMessage for ' + userId, (e as Error).toString());
+            }
         }
     } catch (e) {
-        ctx.reply('Some nasty error has occurred\n\n' + (e as Error).toString()).catch(e => e);
         console.log('Error has occurred for ' + userId);
         console.error(e);
+
+        for (let retry = 0; retry < 100; retry++) {
+            try {
+                await ctx.reply('Some nasty error has occurred, please try again\n\n' + (e as Error).toString());
+                break;
+            } catch (e) {
+                console.error('Unable to send error message for ' + userId, (e as Error).toString());
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
     }
 
     const currentSessionIndex = userSessions.findIndex((session) => session.userId === userId);
@@ -247,7 +288,9 @@ const startBot = () => {
             disable_web_page_preview: true,
             parse_mode: 'MarkdownV2',
         })
-            .catch((e) => e);
+            .catch((e) => {
+                console.error('Unable to send helloMessage for ' + ctx.update.message.from.id, (e as Error).toString());
+            });
     });
 
     bot.on('photo', (ctx) => {
