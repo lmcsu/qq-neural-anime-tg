@@ -215,7 +215,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                     throw new Error('Photo has been deleted');
                 }
 
-                if (msg.includes('bot was blocked by the user')) {
+                if (msg.includes('was blocked by the user')) {
                     break;
                 }
             }
@@ -251,7 +251,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 const msg = (e as Error).toString();
                 console.error('Unable to send error message for ' + userId, msg);
 
-                if (msg.includes('bot was blocked by the user')) {
+                if (msg.includes('was blocked by the user')) {
                     break;
                 }
             }
