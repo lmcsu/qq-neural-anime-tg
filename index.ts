@@ -117,7 +117,7 @@ const cropImage = async (imgData: Buffer): Promise<Buffer> => {
         height: height - cropHeight,
     })
         .toBuffer();
-}
+};
 
 const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: UserSession) => {
     try {
@@ -131,7 +131,9 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                     timeout: 10000,
                     responseType: 'arraybuffer',
                 });
-            } catch (e) {}
+            } catch (e) {
+                //
+            }
 
             if (response?.data) {
                 break;
@@ -245,7 +247,7 @@ const startBot = () => {
 
     bot.catch((e) => {
         console.error('Bot error has occurred ', e);
-    })
+    });
 
     bot.launch();
 };
@@ -253,7 +255,9 @@ const startBot = () => {
 const stopBot = () => {
     try {
         bot?.stop();
-    } catch (e) {}
+    } catch (e) {
+        //
+    }
 };
 
 let shuttingDown = false;
