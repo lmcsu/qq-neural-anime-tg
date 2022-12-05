@@ -6,6 +6,7 @@ import axios, { type AxiosError } from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
+import cluster from 'cluster';
 
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();
@@ -198,6 +199,9 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
     const currentSessionIndex = userSessions.findIndex((session) => session.userId === userId);
     userSessions.splice(currentSessionIndex, 1);
     console.log('Sessions length decreased: ' + userSessions.length);
+    if (!userSessions.length) {
+        tryToShutDown();
+    }
 };
 
 const addUserSession = async (ctx: Context, userId: number, photoId: string, replyMessageId: number) => {
@@ -221,43 +225,96 @@ const addUserSession = async (ctx: Context, userId: number, photoId: string, rep
     await processUserSession(session);
 };
 
-const bot = new Telegraf(config.botToken);
-const throttler = telegrafThrottler();
-bot.use(throttler);
+let bot: Telegraf;
 
-bot.start((ctx) => ctx.reply('Send me the picture you want to convert').catch((e) => e));
+const startBot = () => {
+    bot = new Telegraf(config.botToken);
 
-bot.on('photo', (ctx) => {
-    const userId = ctx.update.message.from.id;
-    console.log('Received photo from ' + userId);
+    const throttler = telegrafThrottler();
+    bot.use(throttler);
 
-    const photoId = [...ctx.update.message.photo].pop()?.file_id || '';
-    addUserSession(ctx, userId, photoId, ctx.update.message.message_id).catch(e => e);
-});
+    bot.start((ctx) => ctx.reply('Send me the picture you want to convert').catch((e) => e));
 
-bot.catch((e) => {
-    console.error('Bot error has occurred ', e);
-})
+    bot.on('photo', (ctx) => {
+        const userId = ctx.update.message.from.id;
+        console.log('Received photo from ' + userId);
 
-bot.launch();
+        const photoId = [...ctx.update.message.photo].pop()?.file_id || '';
+        addUserSession(ctx, userId, photoId, ctx.update.message.message_id).catch(e => e);
+    });
 
-let shuttingDown = false;
-const shutDown = async (reason: string) => {
-    if (shuttingDown) {
-        return;
-    }
-    shuttingDown = true;
+    bot.catch((e) => {
+        console.error('Bot error has occurred ', e);
+    })
 
-    bot.stop(reason);
+    bot.launch();
 };
 
-process.once('unhandledRejection', (promise, reason) => {
+const stopBot = () => {
+    try {
+        bot?.stop();
+    } catch (e) {}
+};
+
+let shuttingDown = false;
+
+let tryToShutDown: () => void;
+
+if (cluster.isPrimary) {
+    let hasWorker = false;
+
+    tryToShutDown = (): void => {
+        shuttingDown = true;
+        if (!hasWorker) {
+            process.exit();
+        }
+    };
+
+    const addWorker = (): void => {
+        if (!shuttingDown) {
+            const worker = cluster.fork();
+            console.log(`Worker #${worker.process.pid} started`);
+            hasWorker = true;
+        }
+    };
+    addWorker();
+
+    cluster.on('exit', (worker, code, signal) => {
+        hasWorker = false;
+
+        console.warn(`Worker #${worker.process.pid} is dead`, 'code:', code, 'signal:', signal);
+
+        if (shuttingDown) {
+            tryToShutDown();
+        } else {
+            setTimeout(() => {
+                addWorker();
+            }, 100);
+        }
+    });
+} else {
+    startBot();
+
+    tryToShutDown = () => {
+        if (!shuttingDown) {
+            stopBot();
+        }
+        shuttingDown = true;
+
+        if (!userSessions.length) {
+            process.exit();
+        }
+    };
+}
+
+process.on('SIGINT', () => tryToShutDown());
+process.on('SIGTERM', () => tryToShutDown());
+
+process.on('unhandledRejection', (promise, reason) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    shutDown('unhandledRejection')
+    tryToShutDown();
 });
-process.once('uncaughtException', (err, origin) => {
-    console.error('Uncaught Exceprion:', err, 'origin:', origin);
-    shutDown('uncaughtException');
+process.on('uncaughtException', (err, origin) => {
+    console.error('Uncaught Exception:', err, 'origin:', origin);
+    tryToShutDown();
 });
-process.once('SIGINT', () => shutDown('SIGINT'));
-process.once('SIGTERM', () => shutDown('SIGTERM'));
