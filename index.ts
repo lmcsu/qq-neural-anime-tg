@@ -251,7 +251,13 @@ const shutDown = async (reason: string) => {
     bot.stop(reason);
 };
 
-process.once('unhandledRejection', () => shutDown('unhandledRejection'));
-process.once('uncaughtException', () => shutDown('uncaughtException'));
+process.once('unhandledRejection', (promise, reason) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    shutDown('unhandledRejection')
+});
+process.once('uncaughtException', (err, origin) => {
+    console.error('Uncaught Exceprion:', err, 'origin:', origin);
+    shutDown('uncaughtException');
+});
 process.once('SIGINT', () => shutDown('SIGINT'));
 process.once('SIGTERM', () => shutDown('SIGTERM'));
