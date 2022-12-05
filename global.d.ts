@@ -4,6 +4,7 @@ declare global {
     type Config = {
         botToken: string;
         botUsername: `@${string}`;
+        byeMessage?: string;
         helloMessage: string;
         keepFiles: boolean;
     };

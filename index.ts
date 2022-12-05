@@ -192,6 +192,12 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             reply_to_message_id: replyMessageId,
         });
         console.log('Files sent to ' + userId);
+
+        if (config.byeMessage) {
+            await ctx.reply(config.byeMessage, {
+                disable_web_page_preview: true,
+            });
+        }
     } catch (e) {
         ctx.reply('Some nasty error has occurred\n\n' + (e as Error).toString()).catch(e => e);
         console.log('Error has occurred for ' + userId);
