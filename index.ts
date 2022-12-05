@@ -2,7 +2,7 @@ import { Telegraf, Context } from 'telegraf';
 import { telegrafThrottler } from 'telegraf-throttler';
 import config from './config';
 import { v4 as v4uuid } from 'uuid';
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError, type AxiosRequestConfig } from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
@@ -235,7 +235,12 @@ const startBot = () => {
     const throttler = telegrafThrottler();
     bot.use(throttler);
 
-    bot.start((ctx) => ctx.reply('Send me the picture you want to convert').catch((e) => e));
+    bot.start((ctx) => {
+        ctx.reply(config.helloMessage, {
+            disable_web_page_preview: true,
+        })
+            .catch((e) => e);
+    });
 
     bot.on('photo', (ctx) => {
         const userId = ctx.update.message.from.id;
