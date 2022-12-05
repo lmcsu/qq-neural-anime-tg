@@ -207,7 +207,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
     const currentSessionIndex = userSessions.findIndex((session) => session.userId === userId);
     userSessions.splice(currentSessionIndex, 1);
     console.log('Sessions length decreased: ' + userSessions.length);
-    if (!userSessions.length) {
+    if (shuttingDown) {
         tryToShutDown();
     }
 };
