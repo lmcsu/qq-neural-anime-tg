@@ -57,12 +57,12 @@ const qqRequest = async (imgData: string) => {
             throw new Error('Face not found. Try another photo.');
         }
 
-        if (data?.code === 2119) {
-            throw new Error('The bot\'s IP address country is not allowed');
-        }
-
-        if (data?.code === -2111) {
-            throw new Error('AUTH_FAILED');
+        if (
+            data?.code === 2119 || // user_ip_country
+            data?.code === -2111 // AUTH_FAILED
+        ) {
+            console.error('Blocked', data);
+            throw new Error('The Chinese website has blocked the bot, too bad 🤷‍♂️');
         }
 
         if (data?.extra) {
