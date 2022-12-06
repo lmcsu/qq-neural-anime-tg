@@ -7,33 +7,41 @@ import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
 import cluster from 'cluster';
+import { signV1 } from './sign';
 
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();
 
     let response;
     let data;
-    for (let retry = 0; retry < 100; retry++) {
+    for (let retry = 0; retry < 1; retry++) {
+        const obj = {
+            busiId: 'ai_painting_anime_entry',
+            extra: JSON.stringify({
+                face_rects: [],
+                version: 2,
+                platform: 'web',
+                data_report: {
+                    parent_trace_id: uuid,
+                    root_channel: '',
+                    level: 0,
+                },
+            }),
+            images: [imgData],
+        };
         try {
             response = await axios.request({
                 method: 'POST',
                 url: 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
-                data: {
-                    busiId: 'ai_painting_anime_entry',
-                    extra: JSON.stringify({
-                        face_rects: [],
-                        version: 2,
-                        platform: 'web',
-                        data_report: {
-                            parent_trace_id: uuid,
-                            root_channel: '',
-                            level: 0,
-                        },
-                    }),
-                    images: [imgData],
-                },
+                data: obj,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Origin': 'https://h5.tu.qq.com',
+                    'Referer': 'https://h5.tu.qq.com/',
+                    'User-Agent':
+                        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+                    'x-sign-value': signV1(obj),
+                    'x-sign-version': 'v1',
                 },
                 timeout: 30000,
             });
