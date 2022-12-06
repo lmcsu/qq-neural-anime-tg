@@ -62,7 +62,10 @@ const qqRequest = async (imgData: string) => {
             data?.code === -2111 // AUTH_FAILED
         ) {
             console.error('Blocked', data);
-            throw new Error('The Chinese website has blocked the bot, too bad 🤷‍♂️');
+            throw new Error(
+                'The Chinese website has blocked the bot, too bad 🤷‍♂️\n' +
+                'Subscribe to my channel to any news (Russian only) @govnoblozhik',
+            );
         }
 
         if (data?.extra) {
