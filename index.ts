@@ -8,6 +8,9 @@ import path from 'path';
 import sharp from 'sharp';
 import cluster from 'cluster';
 import { signV1 } from './sign';
+import { SocksProxyAgent } from 'socks-proxy-agent';
+
+const httpsAgent = config.socksProxy ? new SocksProxyAgent(config.socksProxy) : undefined;
 
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();
@@ -31,6 +34,7 @@ const qqRequest = async (imgData: string) => {
         };
         try {
             response = await axios.request({
+                httpsAgent,
                 method: 'POST',
                 url: 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
                 data: obj,
