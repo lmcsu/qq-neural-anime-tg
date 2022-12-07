@@ -92,8 +92,7 @@ const qqRequest = async (imgData: string) => {
         ) {
             console.error('Blocked', data);
             throw new Error(
-                'The Chinese website has blocked the bot, too bad 🤷‍♂️\n' +
-                'Subscribe to my channel to any news (Russian only) @govnoblozhik',
+                'The Chinese website has blocked the bot, too bad 🤷‍♂️',
             );
         }
 
