@@ -17,7 +17,7 @@ const qqRequest = async (imgData: string) => {
 
     let response;
     let data;
-    for (let retry = 0; retry < 1; retry++) {
+    for (let retry = 0; retry < 100; retry++) {
         const obj = {
             busiId: 'ai_painting_anime_entry',
             extra: JSON.stringify({
