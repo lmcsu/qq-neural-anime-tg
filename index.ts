@@ -9,8 +9,14 @@ import sharp from 'sharp';
 import cluster from 'cluster';
 import { signV1 } from './sign';
 import { SocksProxyAgent } from 'socks-proxy-agent';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
-const httpsAgent = config.socksProxy ? new SocksProxyAgent(config.socksProxy) : undefined;
+let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined = undefined;
+if (config.httpsProxy) {
+    httpsAgent = new HttpsProxyAgent(config.httpsProxy);
+} else if (config.socksProxy) {
+    httpsAgent = new SocksProxyAgent(config.socksProxy);
+}
 
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();

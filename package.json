@@ -6,6 +6,7 @@
     "license": "MIT",
     "dependencies": {
         "axios": "^1.2.0",
+        "https-proxy-agent": "^5.0.1",
         "sharp": "^0.31.2",
         "socks-proxy-agent": "^7.0.0",
         "telegraf": "^4.11.2",

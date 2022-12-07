@@ -7,6 +7,7 @@ const config: Config = {
         'Please rate and fork it on [Github](https://github.com/lmcsu/qq-neural-anime-tg) ♥️',
     keepFiles: false,
     sendVideo: true,
+    httpsProxy: 'http://user:password@ip:port',
     socksProxy: 'socks5://user:password@ip:port',
 };
 
