@@ -21,6 +21,7 @@ You need to have Node.js and NPM installed
 - support for `.env` files dropped, you have to move to the `config.ts` file
 
 # Notes
+- You need to have some good Chinese proxies to make it work. Puth them into your `config.ts`
 - Probably the whole thing is going to break soon anyway
 - Fork it and make your own version, because I don't think that I'm going to support it in the future
 - If you want to keep image files, set `keepFiles: true` in your `config.ts` file
