@@ -14,8 +14,10 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined = undefined;
 if (config.httpsProxy) {
     httpsAgent = new HttpsProxyAgent(config.httpsProxy);
+    httpsAgent.timeout = 30000;
 } else if (config.socksProxy) {
     httpsAgent = new SocksProxyAgent(config.socksProxy);
+    httpsAgent.timeout = 30000;
 }
 
 const qqRequest = async (imgData: string) => {
