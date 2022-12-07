@@ -7,9 +7,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
 import cluster from 'cluster';
-import { signV1 } from './sign';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import md5 from 'md5';
 
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined = undefined;
 if (config.httpsProxy) {
@@ -19,6 +19,15 @@ if (config.httpsProxy) {
     httpsAgent = new SocksProxyAgent(config.socksProxy);
     httpsAgent.timeout = 30000;
 }
+
+const signV1 = (obj: Record<string, unknown>) => {
+    const str = JSON.stringify(obj);
+    return md5(
+        'https://h5.tu.qq.com' +
+        (str.length + (encodeURIComponent(str).match(/%[89ABab]/g)?.length || 0)) +
+        'HQ31X02e',
+    );
+};
 
 const qqRequest = async (imgData: string) => {
     const uuid = v4uuid();
