@@ -92,9 +92,7 @@ const qqRequest = async (imgData: string) => {
             data?.code === -2110 // can't get bypass result from redis
         ) {
             console.error('Blocked', data);
-            throw new Error(
-                'The Chinese website has blocked the bot, too bad 🤷‍♂️',
-            );
+            throw new Error(config.blockedMessage || 'The Chinese website has blocked the bot, too bad 🤷‍♂️');
         }
 
         if (data?.extra) {
