@@ -88,7 +88,8 @@ const qqRequest = async (imgData: string) => {
 
         if (
             data?.code === 2119 || // user_ip_country
-            data?.code === -2111 // AUTH_FAILED
+            data?.code === -2111 || // AUTH_FAILED
+            data?.code === -2110 // can't get bypass result from redis
         ) {
             console.error('Blocked', data);
             throw new Error(
