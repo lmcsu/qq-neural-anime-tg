@@ -86,6 +86,10 @@ const qqRequest = async (imgData: string) => {
             throw new Error('Face not found. Try another photo.');
         }
 
+        if (data?.code === -2100) { // request image is invalid
+            throw new Error('Try another photo.');
+        }
+
         if (
             data?.code === 2119 || // user_ip_country
             data?.code === -2111 || // AUTH_FAILED
