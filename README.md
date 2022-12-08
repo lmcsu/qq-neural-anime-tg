@@ -1,3 +1,5 @@
+# CURRENTLY IT'S NOT WORKING ANYMORE AT ALL, CHINESE GUYS HAVE ENABLED KIND OF NEW PROTECTION, TOO LATE
+
 # What is this
 A Telegram bot for making anime-styled pictures and videos from your source.
 
