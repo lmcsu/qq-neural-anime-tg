@@ -100,6 +100,8 @@ const qqRequest = async (imgData: string) => {
             break;
         }
 
+        console.error('Got no data from QQ', data);
+
         await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
