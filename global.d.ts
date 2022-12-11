@@ -9,6 +9,7 @@ declare global {
         helloMessage: string;
         keepFiles: boolean;
         sendComparedImg?: boolean;
+        sendSingleImg?: boolean;
         sendVideo?: boolean;
         httpsProxy?: string;
         socksProxy?: string;

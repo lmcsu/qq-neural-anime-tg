@@ -12,8 +12,8 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import md5 from 'md5';
 import asyncRetry from 'async-retry';
 
-if (!config.sendVideo && !config.sendComparedImg) {
-    throw new Error('Set at leats one of "sendVideo"/"sendComparedImg" in your config to "true"');
+if (!config.sendVideo && !config.sendComparedImg && !config.sendSingleImg) {
+    throw new Error('Set at leats one of "sendVideo"/"sendComparedImg"/"sendSingleImg" in your config to "true"');
 }
 
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined = undefined;
@@ -125,8 +125,9 @@ const qqRequest = async (imgData: string) => {
     }
 
     return {
-        video: extra.video_urls[0] as string,
-        img: extra.img_urls[1] as string,
+        videoUrl: extra.video_urls[0] as string,
+        comparedImgUrl: extra.img_urls[1] as string,
+        singleImgUrl: extra.img_urls[2] as string,
     };
 };
 
@@ -165,24 +166,33 @@ const qqDownload = async (url: string): Promise<Buffer> => {
 
 const userSessions: Array<UserSession> = [];
 
-const cropImage = async (imgData: Buffer): Promise<Buffer> => {
-    const img = await sharp(imgData);
+const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE'): Promise<Buffer> => {
+    const img = sharp(imgData);
     const meta = await img.metadata();
     const width = meta.width || 0;
     const height = meta.height || 0;
 
+    let cropLeft;
+    let cropTop;
+    let cropWidth;
     let cropHeight;
-    if (width > height) {
-        cropHeight = 177;
+    if (type === 'COMPARED') {
+        cropLeft = 0;
+        cropTop = 0;
+        cropWidth = width;
+        cropHeight = height - (width > height ? 177 : 182);
     } else {
-        cropHeight = 182;
+        cropLeft = (width > height ? 19 : 27);
+        cropTop = (width > height ? 19 : 29);
+        cropWidth = width - cropLeft - (width > height ? 22 : 30);
+        cropHeight = height - cropTop - (width > height ? 202 : 213);
     }
 
     return img.extract({
-        top: 0,
-        left: 0,
-        width,
-        height: height - cropHeight,
+        left: cropLeft,
+        top: cropTop,
+        width: cropWidth,
+        height: cropHeight,
     })
         .toBuffer();
 };
@@ -240,15 +250,16 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         console.log('QQ responded successfully for ' + userId);
 
         console.log('Downloading from QQ for ' + userId);
-        const [imgData, videoData] = await Promise.all([
-            (config.sendComparedImg ?? true) ? qqDownload(urls.img).then((data) => cropImage(data)) : null,
-            (config.sendVideo ?? true) ? qqDownload(urls.video) : null,
+        const [comparedImgData, singleImgData, videoData] = await Promise.all([
+            (config.sendComparedImg ?? true) ? qqDownload(urls.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
+            (config.sendSingleImg ?? false) ? qqDownload(urls.singleImgUrl).then((data) => cropImage(data, 'SINGLE')) : null,
+            (config.sendVideo ?? true) ? qqDownload(urls.videoUrl) : null,
         ]);
 
-        if (config.keepFiles && imgData) {
+        if (config.keepFiles && comparedImgData) {
             fs.writeFile(
                 path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_output_img.jpg'),
-                imgData,
+                comparedImgData,
             );
         }
 
@@ -284,9 +295,17 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         };
 
         const settled = await Promise.allSettled([
-            imgData ? sendMedia(async () => {
+            comparedImgData ? sendMedia(async () => {
                 await ctx.replyWithPhoto({
-                    source: imgData,
+                    source: comparedImgData,
+                }, {
+                    caption: config.botUsername,
+                    reply_to_message_id: replyMessageId,
+                });
+            }) : null,
+            singleImgData ? sendMedia(async () => {
+                await ctx.replyWithPhoto({
+                    source: singleImgData,
                 }, {
                     caption: config.botUsername,
                     reply_to_message_id: replyMessageId,
@@ -303,7 +322,10 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         ]);
 
         const sentCount = settled.filter((item) => item.status === 'fulfilled').length;
-        const totalCount = (+!!(config.sendComparedImg ?? true)) + (+!!(config.sendVideo ?? true));
+        const totalCount =
+            (+!!(config.sendComparedImg ?? true)) +
+            (+!!(config.sendSingleImg ?? false)) +
+            (+!!(config.sendVideo ?? true));
         if (sentCount) {
             console.log(`Files sent to ${userId} (${sentCount}/${totalCount})`);
         } else {
