@@ -2,7 +2,7 @@ import { Telegraf, Context } from 'telegraf';
 import { telegrafThrottler } from 'telegraf-throttler';
 import config from './config';
 import { v4 as v4uuid } from 'uuid';
-import axios, { type AxiosError } from 'axios';
+import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
@@ -10,6 +10,7 @@ import cluster from 'cluster';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import md5 from 'md5';
+import asyncRetry from 'async-retry';
 
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined = undefined;
 if (config.httpsProxy) {
@@ -30,116 +31,132 @@ const signV1 = (obj: Record<string, unknown>) => {
 };
 
 const qqRequest = async (imgData: string) => {
-    const uuid = v4uuid();
+    const obj = {
+        busiId: 'ai_painting_anime_entry',
+        extra: JSON.stringify({
+            face_rects: [],
+            version: 2,
+            platform: 'web',
+            data_report: {
+                parent_trace_id: v4uuid(),
+                root_channel: '',
+                level: 0,
+            },
+        }),
+        images: [imgData],
+    };
+    const sign = signV1(obj);
 
-    let response;
-    let data;
-    for (let retry = 0; retry < 100; retry++) {
-        const obj = {
-            busiId: 'ai_painting_anime_entry',
-            extra: JSON.stringify({
-                face_rects: [],
-                version: 2,
-                platform: 'web',
-                data_report: {
-                    parent_trace_id: uuid,
-                    root_channel: '',
-                    level: 0,
+    let extra;
+    try {
+        extra = await asyncRetry(
+            async (bail) => {
+                const response = await axios.request({
+                    httpsAgent,
+                    method: 'POST',
+                    url: 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
+                    data: obj,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://h5.tu.qq.com',
+                        'Referer': 'https://h5.tu.qq.com/',
+                        'User-Agent':
+                            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+                        'x-sign-value': sign,
+                        'x-sign-version': 'v1',
+                    },
+                    timeout: 30000,
+                });
+
+                const data = response?.data as Record<string, unknown> | undefined;
+
+                if (!data) {
+                    throw new Error('No data');
+                }
+
+                if (data.msg === 'VOLUMN_LIMIT') {
+                    throw new Error('QQ rate limit caught');
+                }
+
+                if (data.msg === 'IMG_ILLEGAL') {
+                    bail(new Error('Couldn\'t pass the censorship. Try another photo.'));
+                    return;
+                }
+
+                if (data.code === 1001) {
+                    bail(new Error('Face not found. Try another photo.'));
+                    return;
+                }
+
+                if (data.code === -2100) { // request image is invalid
+                    bail(new Error('Try another photo.'));
+                    return;
+                }
+
+                if (
+                    data.code === 2119 || // user_ip_country
+                    data.code === -2111 // AUTH_FAILED
+                ) {
+                    bail(new Error(config.blockedMessage || 'The Chinese website has blocked the bot, too bad 🤷‍♂️'));
+                    return;
+                }
+
+                if (!data.extra) {
+                    throw new Error('Got no data from QQ: ' + JSON.stringify(data));
+                }
+
+                return JSON.parse(data.extra as string);
+            },
+            {
+                onRetry(e, attempt) {
+                    console.error(`QQ file upload error caught (attempt #${attempt}): ${e.toString()}`);
                 },
-            }),
-            images: [imgData],
-        };
-        try {
-            response = await axios.request({
-                httpsAgent,
-                method: 'POST',
-                url: 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
-                data: obj,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Origin': 'https://h5.tu.qq.com',
-                    'Referer': 'https://h5.tu.qq.com/',
-                    'User-Agent':
-                        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
-                    'x-sign-value': signV1(obj),
-                    'x-sign-version': 'v1',
-                },
-                timeout: 30000,
-            });
-        } catch (e) {
-            response = (e as AxiosError).response;
-        }
-
-        data = response?.data as Record<string, unknown> | undefined;
-
-        if (data?.msg === 'IMG_ILLEGAL') {
-            throw new Error('Couldn\'t pass the censorship. Try another photo.');
-        }
-
-        if (data?.msg === 'VOLUMN_LIMIT') {
-            retry--;
-            console.log('QQ rate limit caught');
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-        }
-
-        if (data?.code === 1001) {
-            throw new Error('Face not found. Try another photo.');
-        }
-
-        if (data?.code === -2100) { // request image is invalid
-            throw new Error('Try another photo.');
-        }
-
-        if (
-            data?.code === 2119 || // user_ip_country
-            data?.code === -2111 // AUTH_FAILED
-        ) {
-            console.error('Blocked', data);
-            throw new Error(config.blockedMessage || 'The Chinese website has blocked the bot, too bad 🤷‍♂️');
-        }
-
-        if (data?.extra) {
-            break;
-        }
-
-        console.error('Got no data from QQ', data);
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+                retries: 100,
+                factor: 1,
+            },
+        );
+    } catch (e) {
+        console.error(`QQ file upload error caught: ${(e as Error).toString()}`);
+        throw new Error(`Unable to upload the photo: ${(e as Error).toString()}`);
     }
 
-    if (data?.extra) {
-        const extra = JSON.parse(data.extra as string);
-        return {
-            video: extra.video_urls[0],
-            img: extra.img_urls[1],
-        };
-    } else {
-        throw new Error(JSON.stringify(response?.data));
-    }
+    return {
+        video: extra.video_urls[0] as string,
+        img: extra.img_urls[1] as string,
+    };
 };
 
 const qqDownload = async (url: string): Promise<Buffer> => {
-    let response;
-    for (let retry = 0; retry < 100; retry++) {
-        try {
-            response = await axios.request({
-                url,
-                timeout: 5000,
-                responseType: 'arraybuffer',
-            });
-        } catch (e) {
-            response = (e as AxiosError).response;
-            console.error('QQ file download error caught: ' + (e as AxiosError).toString());
-        }
+    let data;
+    try {
+        data = await asyncRetry(
+            async () => {
+                const response = await axios.request({
+                    url,
+                    timeout: 5000,
+                    responseType: 'arraybuffer',
+                });
 
-        if (response?.data) {
-            break;
-        }
+                if (!response.data) {
+                    throw new Error('No data');
+                }
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+                return response.data;
+            },
+            {
+                onRetry(e, attempt) {
+                    console.error(`QQ file download error caught (attempt #${attempt}): ${e.toString()}`);
+                },
+                retries: 100,
+                factor: 1,
+            },
+        );
+    } catch (e) {
+        console.error(`QQ file download error caught: ${(e as Error).toString()}`);
+        throw new Error(`Unable to download media: ${(e as Error).toString()}`);
     }
 
-    return response?.data;
+    return data;
 };
 
 const userSessions: Array<UserSession> = [];
@@ -170,34 +187,39 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
     try {
         const url = await ctx.telegram.getFileLink(photoId);
 
-        let response;
-        for (let retry = 0; retry < 100; retry++) {
-            try {
-                response = await axios.request({
-                    url: url.href,
-                    timeout: 5000,
-                    responseType: 'arraybuffer',
-                });
-            } catch (e) {
-                console.error('Telegram file download error caught: ' + (e as AxiosError).toString());
-            }
+        let telegramFileData;
+        try {
+            telegramFileData = await asyncRetry(
+                async () => {
+                    const response = await axios.request({
+                        url: url.href,
+                        timeout: 5000,
+                        responseType: 'arraybuffer',
+                    });
 
-            if (response?.data) {
-                break;
-            }
+                    if (!response?.data) {
+                        throw new Error('No data');
+                    }
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
-        if (!response) {
-            console.log('Couldn\'t load the photo from ' + userId);
+                    return response.data;
+                },
+                {
+                    onRetry(e, attempt) {
+                        console.error(`Telegram file download error caught (attempt #${attempt}): ${e.toString()}`);
+                    },
+                    retries: 100,
+                    factor: 1,
+                },
+            );
+        } catch (e) {
+            console.error(`Telegram file download error caught: ${(e as Error).toString()}`);
             throw new Error('Couldn\'t load the photo, please try again');
         }
 
         if (config.keepFiles) {
             fs.writeFile(
                 path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_input.jpg'),
-                response.data,
+                telegramFileData,
             );
         }
 
@@ -210,7 +232,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         }
 
         console.log('Uploading to QQ for ' + userId);
-        const urls = await qqRequest(response.data.toString('base64'));
+        const urls = await qqRequest(telegramFileData.toString('base64'));
         console.log('QQ responded successfully for ' + userId);
 
         console.log('Downloading from QQ for ' + userId);
@@ -227,46 +249,53 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             );
         }
 
-        let mediaSuccessfullySent = false;
-        for (let retry = 0; retry < 100; retry++) {
-            try {
-                await ctx.replyWithMediaGroup([
-                    {
-                        type: 'photo',
-                        media: {
-                            source: imgData,
-                        },
-                        caption: config.botUsername,
+        try {
+            await asyncRetry(
+                async (bail) => {
+                    try {
+                        await ctx.replyWithMediaGroup([
+                            {
+                                type: 'photo',
+                                media: {
+                                    source: imgData,
+                                },
+                                caption: config.botUsername,
+                            },
+                            ...((config.sendVideo ?? true) ? [{
+                                type: 'video',
+                                media: {
+                                    source: videoData,
+                                },
+                            } as const] : []),
+                        ], {
+                            reply_to_message_id: replyMessageId,
+                        });
+                    } catch (e) {
+                        const msg = (e as Error).toString();
+
+                        if (msg.includes('replied message not found')) {
+                            bail(new Error('Photo has been deleted'));
+                            return;
+                        }
+
+                        if (msg.includes('was blocked by the user')) {
+                            bail(new Error('Bot was blocked by the user'));
+                            return;
+                        }
+
+                        throw e;
+                    }
+                },
+                {
+                    onRetry(e, attempt) {
+                        console.error(`Unable to send media for ${userId} (attempt #${attempt}): ${e.toString()}`);
                     },
-                    ...((config.sendVideo ?? true) ? [{
-                        type: 'video',
-                        media: {
-                            source: videoData,
-                        },
-                    } as const] : []),
-                ], {
-                    reply_to_message_id: replyMessageId,
-                });
-
-                mediaSuccessfullySent = true;
-                break;
-            } catch (e) {
-                const msg = (e as Error).toString();
-                console.error('Unable to send media for ' + userId, msg);
-
-                if (msg.includes('replied message not found')) {
-                    throw new Error('Photo has been deleted');
-                }
-
-                if (msg.includes('was blocked by the user')) {
-                    break;
-                }
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
-        if (!mediaSuccessfullySent) {
+                    retries: 100,
+                    factor: 1,
+                },
+            );
+        } catch (e) {
+            console.error(`Unable to send media for ${userId}: ${(e as Error).toString()}`);
             throw new Error('Unable to send media, please try again');
         }
 
@@ -286,20 +315,30 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         console.log('Error has occurred for ' + userId);
         console.error(e);
 
-        for (let retry = 0; retry < 100; retry++) {
-            try {
-                await ctx.reply('Some nasty error has occurred, please try again\n\n' + (e as Error).toString());
-                break;
-            } catch (e) {
-                const msg = (e as Error).toString();
-                console.error('Unable to send error message for ' + userId, msg);
+        try {
+            await asyncRetry(
+                async (bail) => {
+                    try {
+                        await ctx.reply('Some nasty error has occurred, please try again\n\n' + (e as Error).toString());
+                    } catch (e) {
+                        if ((e as Error).toString().includes('was blocked by the user')) {
+                            bail(new Error('Bot was blocked by the user'));
+                            return;
+                        }
 
-                if (msg.includes('was blocked by the user')) {
-                    break;
-                }
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+                        throw e;
+                    }
+                },
+                {
+                    onRetry(e, attempt) {
+                        console.error(`Unable to send error message for ${userId} (attempt #${attempt}): ${e.toString()}`);
+                    },
+                    retries: 100,
+                    factor: 1,
+                },
+            );
+        } catch (e) {
+            console.error(`Unable to send error message for ${userId}: ${(e as Error).toString()}`);
         }
     }
 
