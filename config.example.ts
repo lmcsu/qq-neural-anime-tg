@@ -12,7 +12,7 @@ const config: Config = {
             'Thank you for using this bot 👍\n' +
             'Please rate and fork it on [Github](https://github.com/lmcsu/qq-neural-anime-tg) ♥️',
         hello: 'Hi 👋 Send me a photo to convert it into a 2D anime art',
-        media: '@qq_neural_anime_bot',
+        media: '@qq\\_neural\\_anime\\_bot',
         received: 'Photo has been received, please wait',
     },
     proxyUrl: 'socks5://user:password@11.22.33.44:1234',

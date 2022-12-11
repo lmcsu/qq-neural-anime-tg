@@ -315,6 +315,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 }, {
                     caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
+                    parse_mode: 'MarkdownV2',
                 });
             }));
         }
@@ -325,6 +326,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 }, {
                     caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
+                    parse_mode: 'MarkdownV2',
                 });
             }));
         }
@@ -335,6 +337,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 }, {
                     caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
+                    parse_mode: 'MarkdownV2',
                 });
             }));
         }
