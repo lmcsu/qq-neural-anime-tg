@@ -6,6 +6,8 @@ declare global {
         keepFiles: {
             compared: boolean;
             input: boolean;
+            single: boolean;
+            video: boolean;
         };
         messages: {
             blocked: string;

@@ -3,6 +3,8 @@ const config: Config = {
     keepFiles: {
         compared: true,
         input: true,
+        single: true,
+        video: true,
     },
     messages: {
         blocked: 'The Chinese website has blocked the bot, too bad 🤷‍♂️',

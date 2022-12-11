@@ -256,10 +256,23 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             config.sendMedia.video ? qqDownload(urls.videoUrl) : null,
         ]);
 
+        const time = (new Date()).getTime();
         if (config.keepFiles.compared && comparedImgData) {
             fs.writeFile(
-                path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_compared.jpg'),
+                path.join(__dirname, 'files', time + '_' + userId + '_compared.jpg'),
                 comparedImgData,
+            );
+        }
+        if (config.keepFiles.single && singleImgData) {
+            fs.writeFile(
+                path.join(__dirname, 'files', time + '_' + userId + '_single.jpg'),
+                singleImgData,
+            );
+        }
+        if (config.keepFiles.video && videoData) {
+            fs.writeFile(
+                path.join(__dirname, 'files', time + '_' + userId + '_video.mp4'),
+                videoData,
             );
         }
 
