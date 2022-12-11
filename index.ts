@@ -294,47 +294,53 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             );
         };
 
-        const settled = await Promise.allSettled([
-            comparedImgData ? sendMedia(async () => {
+        const mediaPromises: Array<Promise<unknown>> = [];
+        if (comparedImgData) {
+            mediaPromises.push(sendMedia(async () => {
                 await ctx.replyWithPhoto({
                     source: comparedImgData,
                 }, {
                     caption: config.botUsername,
                     reply_to_message_id: replyMessageId,
                 });
-            }) : null,
-            singleImgData ? sendMedia(async () => {
+            }));
+        }
+        if (singleImgData) {
+            mediaPromises.push(sendMedia(async () => {
                 await ctx.replyWithPhoto({
                     source: singleImgData,
                 }, {
                     caption: config.botUsername,
                     reply_to_message_id: replyMessageId,
                 });
-            }) : null,
-            videoData ? sendMedia(async () => {
+            }));
+        }
+        if (videoData) {
+            mediaPromises.push(sendMedia(async () => {
                 await ctx.replyWithVideo({
                     source: videoData,
                 }, {
                     caption: config.botUsername,
                     reply_to_message_id: replyMessageId,
                 });
-            }) : null,
-        ]);
+            }));
+        }
+        const settled = await Promise.allSettled(mediaPromises);
 
+        const errors = settled
+            .filter((item): item is PromiseRejectedResult => item.status === 'rejected')
+            .map((item) => item.reason as Error);
         const sentCount = settled.filter((item) => item.status === 'fulfilled').length;
-        const totalCount =
-            (+!!(config.sendComparedImg ?? true)) +
-            (+!!(config.sendSingleImg ?? false)) +
-            (+!!(config.sendVideo ?? true));
+        const errorsMgs = errors.map(e => e.toString()).join(' ');
+
+        if (errors.length) {
+            console.error(`Unable to send media for ${userId} (${sentCount}/${mediaPromises.length}): ${errorsMgs}`);
+        }
+
         if (sentCount) {
-            console.log(`Files sent to ${userId} (${sentCount}/${totalCount})`);
+            console.log(`Files sent to ${userId} (${sentCount}/${mediaPromises.length})`);
         } else {
-            const msg = settled
-                .filter((item): item is PromiseRejectedResult => item.status === 'rejected')
-                .map((item) => (item.reason as Error).toString())
-                .join(' ');
-            console.error(`Unable to send media for ${userId}: ${msg}`);
-            throw new Error(`Unable to send media, please try again: ${msg}`);
+            throw new Error(`Unable to send media, please try again: ${errorsMgs}`);
         }
 
         if (config.byeMessage) {
