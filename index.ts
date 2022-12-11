@@ -238,8 +238,9 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         }
 
         try {
-            await ctx.reply('Photo has been received, please wait', {
+            await ctx.reply(config.receivedMessage || 'Photo has been received, please wait', {
                 reply_to_message_id: replyMessageId,
+                parse_mode: 'MarkdownV2',
             });
         } catch (e) {
             console.error('Unable to send "photo received" message for ' + userId, (e as Error).toString());

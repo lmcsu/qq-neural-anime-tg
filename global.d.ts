@@ -7,6 +7,7 @@ declare global {
         blockedMessage?: string;
         byeMessage?: string;
         helloMessage: string;
+        receivedMessage?: string;
         keepFiles: boolean;
         sendComparedImg?: boolean;
         sendSingleImg?: boolean;
