@@ -12,6 +12,10 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import md5 from 'md5';
 import asyncRetry from 'async-retry';
 
+if (!config.sendVideo && !config.sendComparedImg) {
+    throw new Error('Set at leats one of "sendVideo"/"sendComparedImg" in your config to "true"');
+}
+
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined = undefined;
 if (config.httpsProxy) {
     httpsAgent = new HttpsProxyAgent(config.httpsProxy);
@@ -237,12 +241,11 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
 
         console.log('Downloading from QQ for ' + userId);
         const [imgData, videoData] = await Promise.all([
-            qqDownload(urls.img)
-                .then((data) => cropImage(data)),
-            ...((config.sendVideo ?? true) ? [qqDownload(urls.video)] : []),
+            (config.sendComparedImg ?? true) ? qqDownload(urls.img).then((data) => cropImage(data)) : null,
+            (config.sendVideo ?? true) ? qqDownload(urls.video) : null,
         ]);
 
-        if (config.keepFiles) {
+        if (config.keepFiles && imgData) {
             fs.writeFile(
                 path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_output_img.jpg'),
                 imgData,
@@ -281,15 +284,15 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         };
 
         const settled = await Promise.allSettled([
-            sendMedia(async () => {
+            imgData ? sendMedia(async () => {
                 await ctx.replyWithPhoto({
                     source: imgData,
                 }, {
                     caption: config.botUsername,
                     reply_to_message_id: replyMessageId,
                 });
-            }),
-            (config.sendVideo ?? true) ? sendMedia(async () => {
+            }) : null,
+            videoData ? sendMedia(async () => {
                 await ctx.replyWithVideo({
                     source: videoData,
                 }, {
@@ -300,7 +303,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         ]);
 
         const sentCount = settled.filter((item) => item.status === 'fulfilled').length;
-        const totalCount = 1 + (+!!config.sendVideo);
+        const totalCount = (+!!(config.sendComparedImg ?? true)) + (+!!(config.sendVideo ?? true));
         if (sentCount) {
             console.log(`Files sent to ${userId} (${sentCount}/${totalCount})`);
         } else {

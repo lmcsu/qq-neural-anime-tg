@@ -8,6 +8,7 @@ declare global {
         byeMessage?: string;
         helloMessage: string;
         keepFiles: boolean;
+        sendComparedImg?: boolean;
         sendVideo?: boolean;
         httpsProxy?: string;
         socksProxy?: string;
