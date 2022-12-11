@@ -249,27 +249,11 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             );
         }
 
-        try {
-            await asyncRetry(
+        const sendMedia = async (fn: () => Promise<void>) => {
+            return await asyncRetry(
                 async (bail) => {
                     try {
-                        await ctx.replyWithMediaGroup([
-                            {
-                                type: 'photo',
-                                media: {
-                                    source: imgData,
-                                },
-                                caption: config.botUsername,
-                            },
-                            ...((config.sendVideo ?? true) ? [{
-                                type: 'video',
-                                media: {
-                                    source: videoData,
-                                },
-                            } as const] : []),
-                        ], {
-                            reply_to_message_id: replyMessageId,
-                        });
+                        await fn();
                     } catch (e) {
                         const msg = (e as Error).toString();
 
@@ -294,12 +278,39 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                     factor: 1,
                 },
             );
-        } catch (e) {
-            console.error(`Unable to send media for ${userId}: ${(e as Error).toString()}`);
-            throw new Error('Unable to send media, please try again');
-        }
+        };
 
-        console.log('Files sent to ' + userId);
+        const settled = await Promise.allSettled([
+            sendMedia(async () => {
+                await ctx.replyWithPhoto({
+                    source: imgData,
+                }, {
+                    caption: config.botUsername,
+                    reply_to_message_id: replyMessageId,
+                });
+            }),
+            (config.sendVideo ?? true) ? sendMedia(async () => {
+                await ctx.replyWithVideo({
+                    source: videoData,
+                }, {
+                    caption: config.botUsername,
+                    reply_to_message_id: replyMessageId,
+                });
+            }) : null,
+        ]);
+
+        const sentCount = settled.filter((item) => item.status === 'fulfilled').length;
+        const totalCount = 1 + (+!!config.sendVideo);
+        if (sentCount) {
+            console.log(`Files sent to ${userId} (${sentCount}/${totalCount})`);
+        } else {
+            const msg = settled
+                .filter((item): item is PromiseRejectedResult => item.status === 'rejected')
+                .map((item) => (item.reason as Error).toString())
+                .join(' ');
+            console.error(`Unable to send media for ${userId}: ${msg}`);
+            throw new Error(`Unable to send media, please try again: ${msg}`);
+        }
 
         if (config.byeMessage) {
             try {
