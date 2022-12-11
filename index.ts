@@ -137,7 +137,7 @@ const qqDownload = async (url: string): Promise<Buffer> => {
             async () => {
                 const response = await axios.request({
                     url,
-                    timeout: 5000,
+                    timeout: 7000,
                     responseType: 'arraybuffer',
                 });
 
