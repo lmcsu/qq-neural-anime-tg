@@ -12,18 +12,17 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import md5 from 'md5';
 import asyncRetry from 'async-retry';
 
-if (!config.sendVideo && !config.sendComparedImg && !config.sendSingleImg) {
-    throw new Error('Set at leats one of "sendVideo"/"sendComparedImg"/"sendSingleImg" in your config to "true"');
+if (!Object.values(config.sendMedia).some(((value) => value))) {
+    throw new Error('Set at leats one of "sendMedia" options in your config to "true"');
 }
 
-let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined = undefined;
-if (config.httpsProxy) {
-    httpsAgent = new HttpsProxyAgent(config.httpsProxy);
-    httpsAgent.timeout = 30000;
-} else if (config.socksProxy) {
-    httpsAgent = new SocksProxyAgent(config.socksProxy);
-    httpsAgent.timeout = 30000;
+let httpsAgent: HttpsProxyAgent | SocksProxyAgent;
+if (/^socks5/.test(config.proxyUrl)) {
+    httpsAgent = new SocksProxyAgent(config.proxyUrl);
+} else {
+    httpsAgent = new HttpsProxyAgent(config.proxyUrl);
 }
+httpsAgent.timeout = 30000;
 
 const signV1 = (obj: Record<string, unknown>) => {
     const str = JSON.stringify(obj);
@@ -101,7 +100,7 @@ const qqRequest = async (imgData: string) => {
                     data.code === 2119 || // user_ip_country
                     data.code === -2111 // AUTH_FAILED
                 ) {
-                    bail(new Error(config.blockedMessage || 'The Chinese website has blocked the bot, too bad 🤷‍♂️'));
+                    bail(new Error(config.messages.blocked));
                     return;
                 }
 
@@ -230,7 +229,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             throw new Error('Couldn\'t load the photo, please try again');
         }
 
-        if (config.keepFiles) {
+        if (config.keepFiles.input) {
             fs.writeFile(
                 path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_input.jpg'),
                 telegramFileData,
@@ -238,7 +237,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         }
 
         try {
-            await ctx.reply(config.receivedMessage || 'Photo has been received, please wait', {
+            await ctx.reply(config.messages.received, {
                 reply_to_message_id: replyMessageId,
                 parse_mode: 'MarkdownV2',
             });
@@ -252,14 +251,14 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
 
         console.log('Downloading from QQ for ' + userId);
         const [comparedImgData, singleImgData, videoData] = await Promise.all([
-            (config.sendComparedImg ?? true) ? qqDownload(urls.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
-            (config.sendSingleImg ?? false) ? qqDownload(urls.singleImgUrl).then((data) => cropImage(data, 'SINGLE')) : null,
-            (config.sendVideo ?? true) ? qqDownload(urls.videoUrl) : null,
+            config.sendMedia.compared ? qqDownload(urls.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
+            config.sendMedia.single ? qqDownload(urls.singleImgUrl).then((data) => cropImage(data, 'SINGLE')) : null,
+            config.sendMedia.video ? qqDownload(urls.videoUrl) : null,
         ]);
 
-        if (config.keepFiles && comparedImgData) {
+        if (config.keepFiles.compared && comparedImgData) {
             fs.writeFile(
-                path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_output_img.jpg'),
+                path.join(__dirname, 'files', (new Date()).getTime() + '_' + userId + '_compared.jpg'),
                 comparedImgData,
             );
         }
@@ -301,7 +300,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 await ctx.replyWithPhoto({
                     source: comparedImgData,
                 }, {
-                    caption: config.botUsername,
+                    caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
                 });
             }));
@@ -311,7 +310,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 await ctx.replyWithPhoto({
                     source: singleImgData,
                 }, {
-                    caption: config.botUsername,
+                    caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
                 });
             }));
@@ -321,7 +320,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                 await ctx.replyWithVideo({
                     source: videoData,
                 }, {
-                    caption: config.botUsername,
+                    caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
                 });
             }));
@@ -344,9 +343,9 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             throw new Error(`Unable to send media, please try again: ${errorsMgs}`);
         }
 
-        if (config.byeMessage) {
+        if (config.messages.bye) {
             try {
-                await ctx.reply(config.byeMessage, {
+                await ctx.reply(config.messages.bye, {
                     disable_web_page_preview: true,
                     parse_mode: 'MarkdownV2',
                 });
@@ -423,7 +422,7 @@ const startBot = () => {
     bot.use(throttler);
 
     bot.start((ctx) => {
-        ctx.reply(config.helloMessage, {
+        ctx.reply(config.messages.hello, {
             disable_web_page_preview: true,
             parse_mode: 'MarkdownV2',
         })

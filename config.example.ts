@@ -1,18 +1,24 @@
 const config: Config = {
     botToken: 'put_your_token_here',
-    botUsername: '@your_bot_username',
-    helloMessage: 'Hi 👋 Send me a photo to convert it into a 2D anime art',
-    blockedMessage: 'The Chinese website has blocked the bot, too bad 🤷‍♂️',
-    byeMessage:
-        'Thank you for using this bot 👍\n' +
-        'Please rate and fork it on [Github](https://github.com/lmcsu/qq-neural-anime-tg) ♥️',
-    receivedMessage: 'Photo has been received, please wait',
-    keepFiles: false,
-    sendComparedImg: true,
-    sendSingleImg: true,
-    sendVideo: true,
-    httpsProxy: 'http://user:password@ip:port',
-    socksProxy: 'socks5://user:password@ip:port',
+    keepFiles: {
+        compared: true,
+        input: true,
+    },
+    messages: {
+        blocked: 'The Chinese website has blocked the bot, too bad 🤷‍♂️',
+        bye:
+            'Thank you for using this bot 👍\n' +
+            'Please rate and fork it on [Github](https://github.com/lmcsu/qq-neural-anime-tg) ♥️',
+        hello: 'Hi 👋 Send me a photo to convert it into a 2D anime art',
+        media: '@qq_neural_anime_bot',
+        received: 'Photo has been received, please wait',
+    },
+    proxyUrl: 'socks5://user:password@11.22.33.44:1234',
+    sendMedia: {
+        compared: true,
+        single: true,
+        video: true,
+    },
 };
 
 export default config;
