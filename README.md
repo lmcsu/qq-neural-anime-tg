@@ -23,6 +23,9 @@ Steps to run it:
 # Upgraging
 - don't forget to run `npm install`
 
+### from 2.x to 3.x
+- `config.ts` file structure has been changed completely, update it according to the new `config.example.ts`
+
 ### from 1.x to 2.x
 - support for `.env` files dropped, you have to move to the `config.ts` file
 
