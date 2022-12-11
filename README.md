@@ -30,6 +30,7 @@ Steps to run it:
 - support for `.env` files dropped, you have to move to the `config.ts` file
 
 # Notes
+- Seems like it's impossible to find FREE alive proxies. Don't waste your time for searching and just buy it somewhere.
 - Probably the whole thing is going to break soon anyway
 - Fork it and make your own version, because I don't think that I'm going to support it in the future
 - If you want to keep image files, set `keepFiles: true` in your `config.ts` file
