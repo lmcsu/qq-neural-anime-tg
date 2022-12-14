@@ -13,7 +13,7 @@ import md5 from 'md5';
 import asyncRetry from 'async-retry';
 
 if (!Object.values(config.sendMedia).some(((value) => value))) {
-    throw new Error('Set at leats one of "sendMedia" options in your config to "true"');
+    throw new Error('Set at least one of "sendMedia" options in your config to "true"');
 }
 
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent;
