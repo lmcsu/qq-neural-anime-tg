@@ -22,7 +22,7 @@ Clone this repo and:
 # What the hell is with proxies?
 From December 6 to December 15 the AI had been available only in China or with Chinese proxies.
 
-Since December 15 the AI works for the rest of the world again so using proxies is not needed anymore, but it's limited and allows you to generate only one type of media.
+Since December 15 the AI works ~~for the rest of the world~~ (UPD: still doesn't work in some countries) again so using proxies is not needed anymore, but it's limited and allows you to generate only one type of media.
 
 If you want to generate videos and single images you still have to find Chinese proxies somewhere.
 
