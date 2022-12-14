@@ -15,12 +15,12 @@ const config: Config = {
         media: '@qq\\_neural\\_anime\\_bot',
         received: 'Photo has been received, please wait',
     },
-    proxyUrl: 'socks5://user:password@11.22.33.44:1234',
     sendMedia: {
         compared: true,
-        single: true,
-        video: true,
+        single: true, // works only with proxy
+        video: true, // works only with proxy
     },
+    // proxyUrl: 'socks5://user:password@11.22.33.44:1234',
 };
 
 export default config;

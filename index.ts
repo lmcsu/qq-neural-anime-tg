@@ -16,13 +16,17 @@ if (!Object.values(config.sendMedia).some(((value) => value))) {
     throw new Error('Set at least one of "sendMedia" options in your config to "true"');
 }
 
-let httpsAgent: HttpsProxyAgent | SocksProxyAgent;
-if (/^socks5/.test(config.proxyUrl)) {
-    httpsAgent = new SocksProxyAgent(config.proxyUrl);
-} else {
-    httpsAgent = new HttpsProxyAgent(config.proxyUrl);
+const QQ_MODE = config.proxyUrl ? 'CHINA' : 'WORLD';
+
+let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined;
+if (config.proxyUrl) {
+    if (/^socks5/.test(config.proxyUrl)) {
+        httpsAgent = new SocksProxyAgent(config.proxyUrl);
+    } else {
+        httpsAgent = new HttpsProxyAgent(config.proxyUrl);
+    }
+    httpsAgent.timeout = 30000;
 }
-httpsAgent.timeout = 30000;
 
 const signV1 = (obj: Record<string, unknown>) => {
     const str = JSON.stringify(obj);
@@ -35,7 +39,7 @@ const signV1 = (obj: Record<string, unknown>) => {
 
 const qqRequest = async (imgData: string) => {
     const obj = {
-        busiId: 'ai_painting_anime_entry',
+        busiId: QQ_MODE === 'WORLD' ? 'different_dimension_me_img_entry' : 'ai_painting_anime_entry',
         extra: JSON.stringify({
             face_rects: [],
             version: 2,
@@ -124,9 +128,9 @@ const qqRequest = async (imgData: string) => {
     }
 
     return {
-        videoUrl: extra.video_urls[0] as string,
+        videoUrl: QQ_MODE === 'CHINA' ? (extra.video_urls[0] as string) : undefined,
         comparedImgUrl: extra.img_urls[1] as string,
-        singleImgUrl: extra.img_urls[2] as string,
+        singleImgUrl: QQ_MODE === 'CHINA' ? (extra.img_urls[2] as string) : undefined,
     };
 };
 
@@ -251,9 +255,14 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
 
         console.log('Downloading from QQ for ' + userId);
         const [comparedImgData, singleImgData, videoData] = await Promise.all([
-            config.sendMedia.compared ? qqDownload(urls.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
-            config.sendMedia.single ? qqDownload(urls.singleImgUrl).then((data) => cropImage(data, 'SINGLE')) : null,
-            config.sendMedia.video ? qqDownload(urls.videoUrl) : null,
+            config.sendMedia.compared ?
+                qqDownload(urls.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
+
+            (config.sendMedia.single && QQ_MODE === 'CHINA') ?
+                qqDownload(urls.singleImgUrl || '').then((data) => cropImage(data, 'SINGLE')) : null,
+
+            (config.sendMedia.video && QQ_MODE === 'CHINA') ?
+                qqDownload(urls.videoUrl || '') : null,
         ]);
 
         const time = (new Date()).getTime();
@@ -475,6 +484,10 @@ let shuttingDown = false;
 let tryToShutDown: () => void;
 
 if (cluster.isPrimary) {
+    if (QQ_MODE === 'WORLD') {
+        console.log('Proxy not found. Videos and single images generation is not available.');
+    }
+
     let hasWorker = false;
 
     tryToShutDown = (): void => {

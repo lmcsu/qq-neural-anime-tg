@@ -16,7 +16,7 @@ declare global {
             media: string;
             received: string;
         };
-        proxyUrl:
+        proxyUrl?:
             `socks5://${string}:${string}@${string}:${number}` |
             `socks5://${string}:${number}` |
             `http://${string}:${string}@${string}:${number}` |

@@ -12,19 +12,24 @@ You need to have Node.js and NPM installed.
 
 Create your bot with https://t.me/BotFather and obtain its token.
 
-Find some Chinese proxies somewhere (see the notes below).
-
 Clone this repo and:
 
 - run `npm install`
 - copy `config.example.ts` to `config.ts`
 - put your bot's token from BotFather into `config.ts`
-- put your proxy url into `config.ts`
 - run `npm start`
 
+# What the hell is with proxies?
+From December 6 to December 15 the AI had been available only in China or with Chinese proxies.
+
+Since December 15 the AI works for the rest of the world again so using proxies is not needed anymore, but it's limited and allows you to generate only one type of media.
+
+If you want to generate videos and single images you still have to find Chinese proxies somewhere.
+
+- Your proxy must be exactly Chinese, but not from Taiwan or Hong Kong, try Beijing for example.
+- Seems like it's impossible to find FREE alive proxies. Don't waste your time searching and just buy it somewhere.
+
 # Notes
-- Your proxy must be exactly Chinese, but not from Taiwan or Hong Kong. Try Beijing for example.
-- Seems like it's impossible to find FREE alive proxies. Don't waste your time for searching and just buy it somewhere.
 - Probably the whole thing is going to break soon anyway.
 - Fork it and make your own version, because I don't think that I'm going to support it in the future.
 - Contact me at Telegram: https://t.me/royvolkov
