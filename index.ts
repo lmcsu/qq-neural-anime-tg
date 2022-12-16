@@ -101,9 +101,10 @@ const qqRequest = async (imgData: string) => {
                 }
 
                 if (
-                    data.code === 2119 || // user_ip_country
+                    data.code === 2119 || // user_ip_country | service upgrading
                     data.code === -2111 // AUTH_FAILED
                 ) {
+                    console.error('Blocked', JSON.stringify(data));
                     bail(new Error(config.messages.blocked));
                     return;
                 }
