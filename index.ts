@@ -119,7 +119,7 @@ const qqRequest = async (imgData: string) => {
                 onRetry(e, attempt) {
                     console.error(`QQ file upload error caught (attempt #${attempt}): ${e.toString()}`);
                 },
-                retries: 100,
+                retries: 10,
                 factor: 1,
             },
         );
@@ -156,7 +156,7 @@ const qqDownload = async (url: string): Promise<Buffer> => {
                 onRetry(e, attempt) {
                     console.error(`QQ file download error caught (attempt #${attempt}): ${e.toString()}`);
                 },
-                retries: 100,
+                retries: 10,
                 factor: 1,
             },
         );
@@ -213,7 +213,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                     onRetry(e, attempt) {
                         console.error(`Telegram getFileLink error caught (attempt #${attempt}): ${e.toString()}`);
                     },
-                    retries: 100,
+                    retries: 10,
                     factor: 1,
                 },
             );
@@ -242,7 +242,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                     onRetry(e, attempt) {
                         console.error(`Telegram file download error caught (attempt #${attempt}): ${e.toString()}`);
                     },
-                    retries: 100,
+                    retries: 10,
                     factor: 1,
                 },
             );
@@ -328,7 +328,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                     onRetry(e, attempt) {
                         console.error(`Unable to send media for ${userId} (attempt #${attempt}): ${e.toString()}`);
                     },
-                    retries: 100,
+                    retries: 10,
                     factor: 1,
                 },
             );
@@ -418,7 +418,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                     onRetry(e, attempt) {
                         console.error(`Unable to send error message for ${userId} (attempt #${attempt}): ${e.toString()}`);
                     },
-                    retries: 100,
+                    retries: 10,
                     factor: 1,
                 },
             );
