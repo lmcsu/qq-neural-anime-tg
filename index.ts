@@ -203,7 +203,24 @@ const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE'): Promise<
 
 const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: UserSession) => {
     try {
-        const url = await ctx.telegram.getFileLink(photoId);
+        let url: URL;
+        try {
+            url = await asyncRetry(
+                async () => {
+                    return await ctx.telegram.getFileLink(photoId);
+                },
+                {
+                    onRetry(e, attempt) {
+                        console.error(`Telegram getFileLink error caught (attempt #${attempt}): ${e.toString()}`);
+                    },
+                    retries: 100,
+                    factor: 1,
+                },
+            );
+        } catch (e) {
+            console.error(`Telegram getFileLink error caught: ${(e as Error).toString()}`);
+            throw new Error('Couldn\'t load the photo, please try again');
+        }
 
         let telegramFileData;
         try {
