@@ -1,4 +1,5 @@
 const config: Config = {
+    mode: 'WORLD', // 'CHINA' | 'WORLD'
     botToken: 'put_your_token_here',
     keepFiles: {
         compared: true,
@@ -17,8 +18,8 @@ const config: Config = {
     },
     sendMedia: {
         compared: true,
-        single: true, // works only with proxy
-        video: true, // works only with proxy
+        single: true, // works only with mode=CHINA
+        video: true, // works only with mode=CHINA
     },
     // proxyUrl: 'socks5://user:password@11.22.33.44:1234',
 };

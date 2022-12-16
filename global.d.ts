@@ -2,6 +2,7 @@ import type { Context } from 'telegraf';
 
 declare global {
     type Config = {
+        mode?: 'CHINA' | 'WORLD';
         botToken: string;
         keepFiles: {
             compared: boolean;

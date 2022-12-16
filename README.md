@@ -19,13 +19,14 @@ Clone this repo and:
 - put your bot's token from BotFather into `config.ts`
 - run `npm start`
 
-# What the hell is with proxies?
-From December 6 to December 15 the AI had been available only in China or with Chinese proxies.
+# Mode and proxies
+In some countries the AI doesn't work at all so if it is your case you have to use some proxy.
 
-Since December 15 the AI works ~~for the rest of the world~~ (UPD: still doesn't work in some countries) again so using proxies is not needed anymore, but it's limited and allows you to generate only one type of media.
+In China it works even another way and lets you generate videos and single images that have better quality than combined ones.
 
-If you want to generate videos and single images you still have to find Chinese proxies somewhere.
+For the Chinese way you have to set `mode` in your config to `'CHINA'`, otherwise it must be `'WORLD'`
 
+For `mode: 'CHINA'` you obviously need Chinese proxy if you don't live there. So in that case:
 - Your proxy must be exactly Chinese, but not from Taiwan or Hong Kong, try Beijing for example.
 - Seems like it's impossible to find FREE alive proxies. Don't waste your time searching and just buy it somewhere.
 

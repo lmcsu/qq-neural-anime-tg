@@ -16,7 +16,7 @@ if (!Object.values(config.sendMedia).some(((value) => value))) {
     throw new Error('Set at least one of "sendMedia" options in your config to "true"');
 }
 
-const QQ_MODE = config.proxyUrl ? 'CHINA' : 'WORLD';
+const QQ_MODE = config.mode ?? (config.proxyUrl ? 'CHINA' : 'WORLD');
 
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined;
 if (config.proxyUrl) {
@@ -484,9 +484,7 @@ let shuttingDown = false;
 let tryToShutDown: () => void;
 
 if (cluster.isPrimary) {
-    if (QQ_MODE === 'WORLD') {
-        console.log('Proxy not found. Videos and single images generation is not available.');
-    }
+    console.log('Current mode:', QQ_MODE);
 
     let hasWorker = false;
 
