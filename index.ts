@@ -310,7 +310,7 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
                         throw new Error('No data');
                     }
 
-                    return response.data;
+                    return response.data as Buffer;
                 },
                 {
                     onRetry(e, attempt) {
