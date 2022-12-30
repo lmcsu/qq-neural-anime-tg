@@ -28,6 +28,80 @@ if (config.proxyUrl) {
     httpsAgent.timeout = 30000;
 }
 
+const FACE_HACK_SIZE = 170;
+const FACE_HACK_SPACE = 100;
+const faceHackImg = sharp(__dirname + '/face_hack.jpg')
+    .resize(FACE_HACK_SIZE, FACE_HACK_SIZE);
+
+const faceHack = async (imgBuffer: Buffer) => {
+    const img = sharp(imgBuffer);
+
+    const [faceHackBuffer, imgMeta] = await Promise.all([
+        faceHackImg.toBuffer(),
+        img.metadata(),
+    ]);
+
+    const imgWidth = Math.max(imgMeta.width || 0, FACE_HACK_SIZE);
+    const imgHeight = Math.max(imgMeta.height || 0, FACE_HACK_SIZE);
+
+    let resultImg;
+    if (imgHeight > imgWidth) {
+        resultImg = sharp({
+            create: {
+                width: imgWidth,
+                height: imgHeight + FACE_HACK_SIZE * 2 + FACE_HACK_SPACE * 2,
+                background: { r: 255, g: 255, b: 255 },
+                channels: 3,
+            },
+        })
+            .composite([
+                {
+                    input: imgBuffer,
+                    left: 0,
+                    top: FACE_HACK_SIZE + FACE_HACK_SPACE,
+                },
+                {
+                    input: faceHackBuffer,
+                    left: Math.round(imgWidth / 2 - FACE_HACK_SIZE / 2),
+                    top: 0,
+                },
+                {
+                    input: faceHackBuffer,
+                    left: Math.round(imgWidth / 2 - FACE_HACK_SIZE / 2),
+                    top: FACE_HACK_SIZE + FACE_HACK_SPACE + imgHeight + FACE_HACK_SPACE,
+                },
+            ]);
+    } else {
+        resultImg = sharp({
+            create: {
+                width: imgWidth + FACE_HACK_SIZE * 2 + FACE_HACK_SPACE * 2,
+                height: imgHeight,
+                background: { r: 255, g: 255, b: 255 },
+                channels: 3,
+            },
+        })
+            .composite([
+                {
+                    input: imgBuffer,
+                    left: FACE_HACK_SIZE + FACE_HACK_SPACE,
+                    top: 0,
+                },
+                {
+                    input: faceHackBuffer,
+                    left: 0,
+                    top: Math.round(imgHeight / 2 - FACE_HACK_SIZE / 2),
+                },
+                {
+                    input: faceHackBuffer,
+                    left: FACE_HACK_SIZE + FACE_HACK_SPACE + imgWidth + FACE_HACK_SPACE,
+                    top: Math.round(imgHeight / 2 - FACE_HACK_SIZE / 2),
+                },
+            ]);
+    }
+
+    return await resultImg.jpeg().toBuffer();
+};
+
 const signV1 = (obj: Record<string, unknown>) => {
     const str = JSON.stringify(obj);
     return md5(
@@ -268,7 +342,17 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         }
 
         console.log('Uploading to QQ for ' + userId);
-        const urls = await qqRequest(telegramFileData.toString('base64'));
+        let urls;
+        try {
+            urls = await qqRequest(telegramFileData.toString('base64'));
+        } catch (e) {
+            if ((e as Error).toString().includes('Face not found')) { // TODO: it shouldn't rely on the text
+                console.log('Face not found, trying to hack for ' + userId);
+                urls = await qqRequest((await faceHack(telegramFileData)).toString('base64'));
+            } else {
+                throw e;
+            }
+        }
         console.log('QQ responded successfully for ' + userId);
 
         console.log('Downloading from QQ for ' + userId);
