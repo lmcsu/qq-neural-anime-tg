@@ -33,16 +33,46 @@ const FACE_HACK_SPACE = 200;
 const faceHackImg = sharp(__dirname + '/face_hack.jpg')
     .resize(FACE_HACK_SIZE, FACE_HACK_SIZE);
 
-const faceHack = async (imgBuffer: Buffer) => {
-    const img = sharp(imgBuffer);
+const faceHack = async (sourceImgBuffer: Buffer) => {
+    const sourceImg = sharp(sourceImgBuffer);
 
-    const [faceHackBuffer, imgMeta] = await Promise.all([
+    const [faceHackBuffer, sourceImgMeta] = await Promise.all([
         faceHackImg.toBuffer(),
-        img.metadata(),
+        sourceImg.metadata(),
     ]);
 
-    const imgWidth = Math.max(imgMeta.width || 0, FACE_HACK_SIZE);
-    const imgHeight = Math.max(imgMeta.height || 0, FACE_HACK_SIZE);
+    const sourceImgWidth = sourceImgMeta.width || 0;
+    const sourceImgHeight = sourceImgMeta.height || 0;
+
+    let imgWidth = sourceImgWidth;
+    let imgHeight = sourceImgHeight;
+    let img = sourceImg.clone();
+    if (sourceImgHeight > sourceImgWidth) {
+        const ratio = sourceImgHeight / sourceImgWidth;
+        if (ratio > 1.5) {
+            imgHeight = Math.floor(sourceImgWidth * 1.5);
+        } else {
+            imgWidth = Math.floor(sourceImgHeight / 1.5);
+        }
+    } else {
+        const ratio = sourceImgWidth / sourceImgHeight;
+        if (ratio > 1.5) {
+            imgWidth = Math.floor(sourceImgHeight * 1.5);
+        } else {
+            imgHeight = Math.floor(sourceImgWidth / 1.5);
+        }
+    }
+
+    imgWidth = Math.max(imgWidth, FACE_HACK_SIZE);
+    imgHeight = Math.max(imgHeight, FACE_HACK_SIZE);
+
+    img = img.resize({
+        fit: 'cover',
+        width: imgWidth,
+        height: imgHeight,
+    });
+
+    const imgBuffer = await img.toBuffer();
 
     let resultImg;
     if (imgHeight > imgWidth) {
