@@ -30,16 +30,18 @@ if (config.proxyUrl) {
 
 const FACE_HACK_SIZE = 170;
 const FACE_HACK_SPACE = 200;
-const faceHackImg = sharp(__dirname + '/face_hack.jpg')
-    .resize(FACE_HACK_SIZE, FACE_HACK_SIZE);
+
+let faceHackBuffer: Buffer;
+sharp(__dirname + '/face_hack.jpg')
+    .resize(FACE_HACK_SIZE, FACE_HACK_SIZE)
+    .toBuffer()
+    .then((buffer) => {
+        faceHackBuffer = buffer;
+    });
 
 const faceHack = async (sourceImgBuffer: Buffer) => {
     const sourceImg = sharp(sourceImgBuffer);
-
-    const [faceHackBuffer, sourceImgMeta] = await Promise.all([
-        faceHackImg.toBuffer(),
-        sourceImg.metadata(),
-    ]);
+    const sourceImgMeta = await sourceImg.metadata();
 
     const sourceImgWidth = sourceImgMeta.width || 0;
     const sourceImgHeight = sourceImgMeta.height || 0;
