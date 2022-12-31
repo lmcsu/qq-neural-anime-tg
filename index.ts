@@ -29,7 +29,7 @@ if (config.proxyUrl) {
 }
 
 const FACE_HACK_SIZE = 170;
-const FACE_HACK_SPACE = 100;
+const FACE_HACK_SPACE = 200;
 const faceHackImg = sharp(__dirname + '/face_hack.jpg')
     .resize(FACE_HACK_SIZE, FACE_HACK_SIZE);
 
