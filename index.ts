@@ -141,7 +141,7 @@ const signV1 = (obj: Record<string, unknown>) => {
     );
 };
 
-const qqRequest = async (imgData: string) => {
+const qqRequest = async (imgBuffer: Buffer) => {
     const obj = {
         busiId: QQ_MODE === 'WORLD' ? 'different_dimension_me_img_entry' : 'ai_painting_anime_entry',
         extra: JSON.stringify({
@@ -154,7 +154,7 @@ const qqRequest = async (imgData: string) => {
                 level: 0,
             },
         }),
-        images: [imgData],
+        images: [imgBuffer.toString('base64')],
     };
     const sign = signV1(obj);
 
@@ -374,11 +374,11 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         console.log('Uploading to QQ for ' + userId);
         let urls;
         try {
-            urls = await qqRequest(telegramFileData.toString('base64'));
+            urls = await qqRequest(telegramFileData);
         } catch (e) {
             if ((e as Error).toString().includes('Face not found')) { // TODO: it shouldn't rely on the text
                 console.log('Face not found, trying to hack for ' + userId);
-                urls = await qqRequest((await faceHack(telegramFileData)).toString('base64'));
+                urls = await qqRequest((await faceHack(telegramFileData)));
             } else {
                 throw e;
             }
