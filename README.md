@@ -30,6 +30,11 @@ For `mode: 'CHINA'` you obviously need Chinese proxy if you don't live there. So
 - Your proxy must be exactly Chinese, but not from Taiwan or Hong Kong, try Beijing for example.
 - Seems like it's impossible to find FREE alive proxies. Don't waste your time searching and just buy it somewhere.
 
+## IMPORTANT
+Since v3.5.0 there's a new special mode `'NO_LIMITS'` which allows to use the bot **WITHOUT PROXIES AND RATE LIMITS AT ALL**.
+Obviously this tiny cheat is gonna be banned soon, so just use it as long as it works. It will be removed when it's dead.
+Thanks to @nevzra for sharing this hack.
+
 # Notes
 - Probably the whole thing is going to break soon anyway.
 - Fork it and make your own version, because I don't think that I'm going to support it in the future.

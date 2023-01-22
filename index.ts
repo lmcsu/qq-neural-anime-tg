@@ -16,7 +16,7 @@ if (!Object.values(config.sendMedia).some(((value) => value))) {
     throw new Error('Set at least one of "sendMedia" options in your config to "true"');
 }
 
-const QQ_MODE = config.mode ?? (config.proxyUrl ? 'CHINA' : 'WORLD');
+const QQ_MODE = config.mode ?? 'NO_LIMITS';
 
 let httpsAgent: HttpsProxyAgent | SocksProxyAgent | undefined;
 if (config.proxyUrl) {
@@ -144,9 +144,14 @@ const signV1 = (obj: Record<string, unknown>) => {
 };
 
 const qqRequest = async (imgBuffer: Buffer) => {
+    const busiId = ({
+        WORLD: 'different_dimension_me_img_entry',
+        CHINA: 'ai_painting_anime_entry',
+        NO_LIMITS: 'aiplay_ai_painting_anime_entry',
+    })[QQ_MODE];
+
     const obj = {
-        busiId: QQ_MODE === 'WORLD' ? 'different_dimension_me_img_entry' : 'ai_painting_anime_entry',
-        //or u can try with aiplay_ai_painting_anime_entry 
+        busiId,
         extra: JSON.stringify({
             face_rects: [],
             version: 2,
@@ -236,9 +241,9 @@ const qqRequest = async (imgBuffer: Buffer) => {
     }
 
     return {
-        videoUrl: QQ_MODE === 'CHINA' ? (extra.video_urls[0] as string) : undefined,
+        videoUrl: QQ_MODE === 'WORLD' ? undefined : (extra.video_urls[0] as string),
         comparedImgUrl: extra.img_urls[1] as string,
-        singleImgUrl: QQ_MODE === 'CHINA' ? (extra.img_urls[2] as string) : undefined,
+        singleImgUrl: QQ_MODE === 'WORLD' ? undefined : (extra.img_urls[2] as string),
     };
 };
 
@@ -393,10 +398,10 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             config.sendMedia.compared ?
                 qqDownload(urls.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
 
-            (config.sendMedia.single && QQ_MODE === 'CHINA') ?
+            (config.sendMedia.single && QQ_MODE !== 'WORLD') ?
                 qqDownload(urls.singleImgUrl || '').then((data) => cropImage(data, 'SINGLE')) : null,
 
-            (config.sendMedia.video && QQ_MODE === 'CHINA') ?
+            (config.sendMedia.video && QQ_MODE !== 'WORLD') ?
                 qqDownload(urls.videoUrl || '') : null,
         ]);
 
