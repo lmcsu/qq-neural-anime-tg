@@ -146,6 +146,7 @@ const signV1 = (obj: Record<string, unknown>) => {
 const qqRequest = async (imgBuffer: Buffer) => {
     const obj = {
         busiId: QQ_MODE === 'WORLD' ? 'different_dimension_me_img_entry' : 'ai_painting_anime_entry',
+        //or u can try with aiplay_ai_painting_anime_entry 
         extra: JSON.stringify({
             face_rects: [],
             version: 2,
