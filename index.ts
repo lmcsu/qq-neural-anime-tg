@@ -330,6 +330,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
 
     const currentUserStatus = usersStatuses[userId];
     if (currentUserStatus.requestsCount >= (config.parallelRequests || 1)) {
+        console.log('Request rejected for ' + userId);
         await ctx.reply('You send too many pictures, please wait', {
             reply_to_message_id: replyMessageId,
         });
