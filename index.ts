@@ -282,6 +282,7 @@ const qqDownload = async (url: string): Promise<Buffer> => {
 
 const usersStatuses: Record<number, {
     requestsCount: number;
+    requestsOverflow: boolean;
 }> = {};
 
 const getUsersRequestCount = () => {
@@ -326,14 +327,18 @@ const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE'): Promise<
 const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, replyMessageId: number) => {
     usersStatuses[userId] ??= {
         requestsCount: 0,
+        requestsOverflow: false,
     };
 
     const currentUserStatus = usersStatuses[userId];
     if (currentUserStatus.requestsCount >= (config.parallelRequests || 1)) {
         console.log('Request rejected for ' + userId);
-        await ctx.reply('You send too many pictures, please wait', {
-            reply_to_message_id: replyMessageId,
-        });
+        if (!currentUserStatus.requestsOverflow) {
+            currentUserStatus.requestsOverflow = true;
+            await ctx.reply('You send too many pictures, please wait', {
+                reply_to_message_id: replyMessageId,
+            });
+        }
         return;
     }
 
@@ -581,6 +586,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
     }
 
     currentUserStatus.requestsCount--;
+    currentUserStatus.requestsOverflow = false;
     if (currentUserStatus.requestsCount === 0) {
         delete usersStatuses[userId];
     }
