@@ -280,7 +280,17 @@ const qqDownload = async (url: string): Promise<Buffer> => {
     return data;
 };
 
-const userSessions: Array<UserSession> = [];
+const usersStatuses: Record<number, {
+    requestsCount: number;
+}> = {};
+
+const getUsersRequestCount = () => {
+    return Object.values(usersStatuses).reduce((acc, s) => acc + s.requestsCount, 0);
+};
+
+const printUsersStatuses = () => {
+    console.log(`Users: ${Object.keys(usersStatuses).length} | Requests: ${getUsersRequestCount()}`);
+};
 
 const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE'): Promise<Buffer> => {
     const img = sharp(imgData);
@@ -313,7 +323,22 @@ const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE'): Promise<
         .toBuffer();
 };
 
-const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: UserSession) => {
+const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, replyMessageId: number) => {
+    usersStatuses[userId] ??= {
+        requestsCount: 0,
+    };
+
+    const currentUserStatus = usersStatuses[userId];
+    if (currentUserStatus.requestsCount >= (config.parallelRequests || 1)) {
+        await ctx.reply('You send too many pictures, please wait', {
+            reply_to_message_id: replyMessageId,
+        });
+        return;
+    }
+
+    currentUserStatus.requestsCount++;
+    printUsersStatuses();
+
     try {
         let url: URL;
         try {
@@ -526,7 +551,12 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
             await asyncRetry(
                 async (bail) => {
                     try {
-                        await ctx.reply('Some nasty error has occurred, please try again\n\n' + (e as Error).toString());
+                        await ctx.reply(
+                            'Some nasty error has occurred, please try again\n\n' + (e as Error).toString(),
+                            {
+                                reply_to_message_id: replyMessageId,
+                            },
+                        );
                     } catch (e) {
                         if ((e as Error).toString().includes('was blocked by the user')) {
                             bail(new Error('Bot was blocked by the user'));
@@ -549,33 +579,15 @@ const processUserSession = async ({ ctx, userId, photoId, replyMessageId }: User
         }
     }
 
-    const currentSessionIndex = userSessions.findIndex((session) => session.userId === userId);
-    userSessions.splice(currentSessionIndex, 1);
-    console.log('Sessions length decreased: ' + userSessions.length);
+    currentUserStatus.requestsCount--;
+    if (currentUserStatus.requestsCount === 0) {
+        delete usersStatuses[userId];
+    }
+    printUsersStatuses();
+
     if (shuttingDown) {
         tryToShutDown();
     }
-};
-
-const addUserSession = async (ctx: Context, userId: number, photoId: string, replyMessageId: number) => {
-    const currentSession = (userSessions.find((session) => session.userId === userId));
-    if (currentSession) {
-        await ctx.reply('You are already in the queue, please wait', {
-            reply_to_message_id: replyMessageId,
-        });
-        return;
-    }
-
-    const session = {
-        ctx,
-        userId,
-        photoId,
-        replyMessageId,
-    };
-    userSessions.push(session);
-    console.log('Sessions length increased: ' + userSessions.length);
-
-    await processUserSession(session);
 };
 
 let bot: Telegraf;
@@ -601,7 +613,7 @@ const startBot = () => {
         console.log('Received photo from ' + userId);
 
         const photoId = [...ctx.update.message.photo].pop()?.file_id || '';
-        addUserSession(ctx, userId, photoId, ctx.update.message.message_id).catch(e => e);
+        onPhotoReceived(ctx, userId, photoId, ctx.update.message.message_id).catch(e => e);
     });
 
     bot.catch((e) => {
@@ -666,7 +678,7 @@ if (cluster.isPrimary) {
         }
         shuttingDown = true;
 
-        if (!userSessions.length) {
+        if (!getUsersRequestCount()) {
             process.exit();
         }
     };

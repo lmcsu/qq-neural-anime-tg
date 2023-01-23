@@ -17,6 +17,7 @@ declare global {
             media: string;
             received: string;
         };
+        parallelRequests?: number;
         proxyUrl?:
             `socks5://${string}:${string}@${string}:${number}` |
             `socks5://${string}:${number}` |
