@@ -595,7 +595,9 @@ let bot: Telegraf;
 const startBot = () => {
     bot = new Telegraf(config.botToken);
 
-    const throttler = telegrafThrottler();
+    const throttler = telegrafThrottler({
+        in: {},
+    });
     bot.use(throttler);
 
     bot.start((ctx) => {
