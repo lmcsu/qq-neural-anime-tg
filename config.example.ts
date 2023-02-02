@@ -22,6 +22,7 @@ const config: Config = {
         video: true, // doesn't work with mode=WORLD
     },
     parallelRequests: 10,
+    // Uncomment the line below and set your proxy if you need it.
     // proxyUrl: 'socks5://user:password@11.22.33.44:1234',
 };
 
