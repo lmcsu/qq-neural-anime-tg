@@ -19,12 +19,19 @@ Clone this repo and:
 - put your bot's token from BotFather into `config.ts`
 - run `npm start`
 
-# Mode and proxies
+# Mode
+There's option `mode` in `config.ts` which currently takes two values:
+
+- `DIFFERENT_DIMENSION_ME` - default one, has rate limits, could generate only double compared images.
+- `AI_PAINTING_ANIME` - a little hack that has no rate limits and lets you also generate videos and single images that have better quality than combined ones. And this mode is also going to be broken soon (like that hapened with the previous hack).
+
+# Proxies
 In some countries the AI doesn't work at all so if it is your case you have to use some proxy.
 
-Uhhm..
+Seems like Chinese proxies are the best.
+But not from Taiwan or Hong Kong, try Beijing for example.
 
-It's too hard to explain everything right now, **I'm going to update this text in minutes, just wait.**
+It's almost impossible to find free alive proxies. Don't waste your time searching and just buy it somewhere.
 
 # Notes
 - Probably the whole thing is going to break soon anyway.
