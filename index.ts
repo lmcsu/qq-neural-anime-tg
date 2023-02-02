@@ -620,7 +620,9 @@ const startBot = () => {
 
     bot.on('photo', (ctx) => {
         const userId = ctx.update.message.from.id;
-        console.log('Received photo from ' + userId);
+        const name = ((ctx.message.from.first_name || '') + ' ' + (ctx.message.from.last_name || '')).trim();
+        const username = ctx.message.from.username ? ('@' + ctx.message.from.username) : '<none>';
+        console.log(`Received photo from id: ${userId}, username: ${username}, name: ${name}`);
 
         const photoId = [...ctx.update.message.photo].pop()?.file_id || '';
         onPhotoReceived(ctx, userId, photoId, ctx.update.message.message_id).catch(e => e);
