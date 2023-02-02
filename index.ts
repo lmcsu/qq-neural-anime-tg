@@ -233,6 +233,11 @@ const qqRequest = async (imgBuffer: Buffer) => {
         case 'DIFFERENT_DIMENSION_ME': {
             const extra = await request({
                 busiId: 'different_dimension_me_img_entry',
+                extra: JSON.stringify({
+                    face_rects: [],
+                    version: 2,
+                    platform: 'web',
+                }),
                 images: [imgBuffer.toString('base64')],
             });
 
@@ -243,6 +248,11 @@ const qqRequest = async (imgBuffer: Buffer) => {
         case 'AI_PAINTING_ANIME': {
             const extra = await request({
                 busiId: 'ai_painting_anime_img_entry',
+                extra: JSON.stringify({
+                    face_rects: [],
+                    version: 2,
+                    platform: 'web',
+                }),
                 images: [imgBuffer.toString('base64')],
             });
 
@@ -255,6 +265,9 @@ const qqRequest = async (imgBuffer: Buffer) => {
                     busiId: 'ai_painting_anime_video_entry',
                     extra: JSON.stringify({
                         uuid,
+                        face_rects: [],
+                        version: 2,
+                        platform: 'web',
                     }),
                 });
 
