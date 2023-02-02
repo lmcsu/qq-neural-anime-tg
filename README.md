@@ -22,18 +22,9 @@ Clone this repo and:
 # Mode and proxies
 In some countries the AI doesn't work at all so if it is your case you have to use some proxy.
 
-In China it works even another way and lets you generate videos and single images that have better quality than combined ones.
+Uhhm..
 
-For the Chinese way you have to set `mode` in your config to `'CHINA'`, otherwise it must be `'WORLD'`
-
-For `mode: 'CHINA'` you obviously need Chinese proxy if you don't live there. So in that case:
-- Your proxy must be exactly Chinese, but not from Taiwan or Hong Kong, try Beijing for example.
-- Seems like it's impossible to find FREE alive proxies. Don't waste your time searching and just buy it somewhere.
-
-## IMPORTANT
-Since v3.5.0 there's a new special mode `'NO_LIMITS'` which allows to use the bot **WITHOUT PROXIES AND RATE LIMITS AT ALL**.
-Obviously this tiny cheat is gonna be banned soon, so just use it as long as it works. It will be removed when it's dead.
-Thanks to @nevzra for sharing this hack.
+It's too hard to explain everything right now, **I'm going to update this text in minutes, just wait.**
 
 # Notes
 - Probably the whole thing is going to break soon anyway.
@@ -42,6 +33,9 @@ Thanks to @nevzra for sharing this hack.
 
 # Upgrading
 Don't forget to always run `npm install`
+
+### from 3.x to 4.x
+- change your `'mode'` in `config.ts` to a new one
 
 ### from 2.x to 3.x
 - `config.ts` file structure has been changed completely, update it according to the new `config.example.ts`
