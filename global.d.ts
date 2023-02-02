@@ -2,7 +2,7 @@ export {};
 
 declare global {
     type Config = {
-        mode?: 'CHINA' | 'WORLD' | 'NO_LIMITS';
+        mode: 'DIFFERENT_DIMENSION_ME' | 'AI_PAINTING_ANIME';
         botToken: string;
         keepFiles: {
             compared: boolean;

@@ -1,5 +1,5 @@
 const config: Config = {
-    mode: 'NO_LIMITS', // 'CHINA' | 'WORLD' | 'NO_LIMITS'
+    mode: 'DIFFERENT_DIMENSION_ME', // 'DIFFERENT_DIMENSION_ME' | 'AI_PAINTING_ANIME'
     botToken: 'put_your_token_here',
     keepFiles: {
         compared: true,
@@ -18,8 +18,8 @@ const config: Config = {
     },
     sendMedia: {
         compared: true,
-        single: true, // doesn't work with mode=WORLD
-        video: true, // doesn't work with mode=WORLD
+        single: true, // much slower and works only with mode=AI_PAINTING_ANIME
+        video: true, // much slower and works only with mode=AI_PAINTING_ANIME
     },
     parallelRequests: 10,
     // Uncomment the line below and set your proxy if you need it.
