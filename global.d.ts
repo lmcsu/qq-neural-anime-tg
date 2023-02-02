@@ -1,4 +1,4 @@
-import type { Context } from 'telegraf';
+export {};
 
 declare global {
     type Config = {
@@ -28,12 +28,5 @@ declare global {
             single: boolean;
             video: boolean;
         };
-    };
-
-    type UserSession = {
-        ctx: Context;
-        userId: number;
-        photoId: string;
-        replyMessageId: number;
     };
 }
