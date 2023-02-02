@@ -256,6 +256,7 @@ const qqDownload = async (url: string): Promise<Buffer> => {
                     url,
                     timeout: 10000,
                     responseType: 'arraybuffer',
+                    httpsAgent,
                 });
 
                 if (!response.data) {
