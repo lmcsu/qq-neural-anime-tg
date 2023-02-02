@@ -43,6 +43,7 @@ Don't forget to always run `npm install`
 
 ### from 3.x to 4.x
 - change your `'mode'` in `config.ts` to a new one
+- `'parallelRequests'` is not optional anymore
 
 ### from 2.x to 3.x
 - `config.ts` file structure has been changed completely, update it according to the new `config.example.ts`

@@ -375,7 +375,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
     };
 
     const currentUserStatus = usersStatuses[userId];
-    if (currentUserStatus.requestsCount >= (config.parallelRequests || 1)) {
+    if (currentUserStatus.requestsCount >= config.parallelRequests) {
         console.log('Request rejected for ' + userId);
         if (!currentUserStatus.requestsOverflow) {
             currentUserStatus.requestsOverflow = true;
