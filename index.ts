@@ -144,6 +144,11 @@ const qqRequest = async (imgBuffer: Buffer) => {
     const request = async (obj: Record<string, unknown>) => {
         const sign = signV1(obj);
 
+        const url = ({
+            DIFFERENT_DIMENSION_ME: 'https://ai.tu.qq.com/overseas/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
+            AI_PAINTING_ANIME: 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
+        })[config.mode];
+
         let extra;
         try {
             extra = await asyncRetry(
@@ -151,7 +156,7 @@ const qqRequest = async (imgBuffer: Buffer) => {
                     const response = await axios.request({
                         httpsAgent,
                         method: 'POST',
-                        url: 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
+                        url,
                         data: obj,
                         headers: {
                             'Content-Type': 'application/json',
