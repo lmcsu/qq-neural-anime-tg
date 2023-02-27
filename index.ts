@@ -144,14 +144,14 @@ const qqRequest = async (imgBuffer: Buffer) => {
     const request = async (obj: Record<string, unknown>) => {
         const sign = signV1(obj);
 
-        const url = ({
-            DIFFERENT_DIMENSION_ME: 'https://ai.tu.qq.com/overseas/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
-            AI_PAINTING_ANIME: 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process',
-        })[config.mode];
+        let url = 'https://ai.tu.qq.com/overseas/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process';
+        if (config.mode === 'AI_PAINTING_ANIME') {
+            url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process';
+        }
 
-        let extra;
+        let data;
         try {
-            extra = await asyncRetry(
+            data = await asyncRetry(
                 async (bail) => {
                     const response = await axios.request({
                         httpsAgent,
@@ -212,7 +212,7 @@ const qqRequest = async (imgBuffer: Buffer) => {
                         throw new Error('Got no data from QQ: ' + JSON.stringify(data));
                     }
 
-                    return JSON.parse(data.extra as string);
+                    return data;
                 },
                 {
                     onRetry(e, attempt) {
@@ -227,16 +227,17 @@ const qqRequest = async (imgBuffer: Buffer) => {
             throw new Error(`Unable to upload the photo: ${(e as Error).toString()}`);
         }
 
-        return extra;
+        return data as Record<string, unknown> & { extra: string };
     };
 
     let comparedImgUrl: string | null = null;
     let videoUrl: string | null = null;
     let singleImgUrl: string | null = null;
+    let singleImg: Buffer | null = null;
 
     switch (config.mode) {
         case 'DIFFERENT_DIMENSION_ME': {
-            const extra = await request({
+            const data = await request({
                 busiId: 'different_dimension_me_img_entry',
                 extra: JSON.stringify({
                     face_rects: [],
@@ -245,13 +246,14 @@ const qqRequest = async (imgBuffer: Buffer) => {
                 }),
                 images: [imgBuffer.toString('base64')],
             });
+            const extra = JSON.parse(data.extra);
 
             comparedImgUrl = extra.img_urls[1] as string;
             break;
         }
 
         case 'AI_PAINTING_ANIME': {
-            const extra = await request({
+            const data = await request({
                 busiId: 'ai_painting_anime_img_entry',
                 extra: JSON.stringify({
                     face_rects: [],
@@ -260,13 +262,14 @@ const qqRequest = async (imgBuffer: Buffer) => {
                 }),
                 images: [imgBuffer.toString('base64')],
             });
+            const extra = JSON.parse(data.extra);
 
             comparedImgUrl = extra.img_urls[1] as string;
 
             if (config.sendMedia.single || config.sendMedia.video) {
                 const uuid = extra.uuid as string;
 
-                const videoExtra = await request({
+                const videoData = await request({
                     busiId: 'ai_painting_anime_video_entry',
                     extra: JSON.stringify({
                         uuid,
@@ -275,6 +278,7 @@ const qqRequest = async (imgBuffer: Buffer) => {
                         platform: 'web',
                     }),
                 });
+                const videoExtra = JSON.parse(videoData.extra);
 
                 if (config.sendMedia.video) {
                     videoUrl = videoExtra.video_urls[0] as string;
@@ -286,12 +290,28 @@ const qqRequest = async (imgBuffer: Buffer) => {
             }
             break;
         }
+
+        case 'AIGCSDK_AI_PAINTING_ANIME': {
+            const data = await request({
+                busiId: 'aigcsdk_ai_painting_anime_img_entry',
+                extra: JSON.stringify({
+                    face_rects: [],
+                    version: 2,
+                    platform: 'web',
+                }),
+                images: [imgBuffer.toString('base64')],
+            });
+
+            singleImg = Buffer.from((data.images as [string, string])[1], 'base64');
+            break;
+        }
     }
 
     return {
         comparedImgUrl,
         videoUrl,
         singleImgUrl,
+        singleImg,
     };
 };
 
@@ -460,13 +480,13 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
         }
 
         console.log('Uploading to QQ for ' + userId);
-        let urls;
+        let imgData;
         try {
-            urls = await qqRequest(telegramFileData);
+            imgData = await qqRequest(telegramFileData);
         } catch (e) {
             if ((e as Error).toString().includes('Face not found')) { // TODO: it shouldn't rely on the text
                 console.log('Face not found, trying to hack for ' + userId);
-                urls = await qqRequest((await faceHack(telegramFileData)));
+                imgData = await qqRequest((await faceHack(telegramFileData)));
             } else {
                 throw e;
             }
@@ -475,9 +495,13 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
 
         console.log('Downloading from QQ for ' + userId);
         const [comparedImgData, singleImgData, videoData] = await Promise.all([
-            urls.comparedImgUrl ? qqDownload(urls.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
-            urls.singleImgUrl ? qqDownload(urls.singleImgUrl).then((data) => cropImage(data, 'SINGLE')) : null,
-            urls.videoUrl ? qqDownload(urls.videoUrl) : null,
+            imgData.comparedImgUrl ? qqDownload(imgData.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
+
+            imgData.singleImgUrl ?
+                qqDownload(imgData.singleImgUrl).then((data) => cropImage(data, 'SINGLE')) :
+                (imgData.singleImg ?? null),
+
+            imgData.videoUrl ? qqDownload(imgData.videoUrl) : null,
         ]);
 
         const time = (new Date()).getTime();

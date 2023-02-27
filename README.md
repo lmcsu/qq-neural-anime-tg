@@ -23,7 +23,10 @@ Clone this repo and:
 There's option `mode` in `config.ts` which currently takes two values:
 
 - `DIFFERENT_DIMENSION_ME` - default one, has rate limits, could generate only double compared images.
-- `AI_PAINTING_ANIME` - a little hack that has no rate limits and lets you also generate videos and single images that have better quality than combined ones. And this mode is also going to be broken soon (like that hapened with the previous hack).
+- `AI_PAINTING_ANIME` - a little hack, has rate limits (already) and lets you also generate videos and single images that have better quality than combined ones. Seems like it works only with Chinese proxies.
+- `AIGCSDK_AI_PAINTING_ANIME` - another hack that generates single images much faster and has lower rate limits (yet).
+
+**Remember that all modes are unstable and their behavior may change at any time!**
 
 # Proxies
 In some countries the AI doesn't work at all so if it is your case you have to use some proxy.
