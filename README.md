@@ -20,13 +20,18 @@ Clone this repo and:
 - run `npm start`
 
 # Mode
-There's option `mode` in `config.ts` which currently takes two values:
+The bot works in different modes, you can switch it in your `config.ts` to the one that suits you better.
 
-- `DIFFERENT_DIMENSION_ME` - default one, has rate limits, could generate double compared images and cropped single images.
-- `AI_PAINTING_ANIME` - a little hack, has rate limits (already) and lets you also generate videos and single images that have better quality. Seems like it works only with Chinese proxies.
-- `AIGCSDK_AI_PAINTING_ANIME` - another hack that generates single images much faster and has lower rate limits (yet).
+It might produce single images, compared images and videos in different styles and quality.
 
-**Remember that all modes are unstable and their behavior may change at any time!**
+All modes are unstable and their behavior may change at any time.
+
+| Mode                      |  Style  | Single  | Compared | Video | Rate limits | Availability   |
+| :---                      |  :---:  |  :---:  |  :---:   | :---: |    :---:    |     :---:      |
+| AI_PAINTING_SPRING        | Spring  | Cropped | +        | Slow  | -           | Most countries |
+| DIFFERENT_DIMENSION_ME    | Classic | Cropped | +        | -     | High        | Most countries |
+| AI_PAINTING_ANIME         | Classic | Slow    | +        | Slow  | High        | China only     |
+| AIGCSDK_AI_PAINTING_ANIME | Classic | Fast    | -        | -     | Low         | Most countries |
 
 # Proxies
 In some countries the AI doesn't work at all so if it is your case you have to use some proxy.

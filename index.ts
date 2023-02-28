@@ -140,12 +140,12 @@ const signV1 = (obj: Record<string, unknown>) => {
     );
 };
 
-const qqRequest = async (imgBuffer: Buffer) => {
+const qqRequest = async (mode: typeof config.mode, imgBuffer: Buffer) => {
     const request = async (obj: Record<string, unknown>) => {
         const sign = signV1(obj);
 
         let url = 'https://ai.tu.qq.com/overseas/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process';
-        if (config.mode === 'AI_PAINTING_ANIME') {
+        if (mode === 'AI_PAINTING_ANIME') {
             url = 'https://ai.tu.qq.com/trpc.shadow_cv.ai_processor_cgi.AIProcessorCgi/Process';
         }
 
@@ -242,7 +242,36 @@ const qqRequest = async (imgBuffer: Buffer) => {
     let singleImgUrl: string | null = null;
     let singleImg: Buffer | null = null;
 
-    switch (config.mode) {
+    switch (mode) {
+        case 'AI_PAINTING_SPRING': {
+            // We don't need to wait for video if it's disabled so we might use the faster way.
+            let busiId = 'ai_painting_spring_entry';
+            if (!config.sendMedia.video) {
+                busiId = 'ai_painting_spring_img_entry';
+            }
+
+            const data = await request({
+                busiId,
+                extra: JSON.stringify({
+                    face_rects: [],
+                    version: 2,
+                    platform: 'web',
+                }),
+                images: [imgBuffer.toString('base64')],
+            });
+
+            const extra = JSON.parse(data.extra);
+
+            if (config.sendMedia.compared || config.sendMedia.single) {
+                comparedImgUrl = extra.img_urls[2];
+            }
+
+            if (config.sendMedia.video) {
+                videoUrl = extra.video_urls[0];
+            }
+            break;
+        }
+
         case 'DIFFERENT_DIMENSION_ME': {
             const data = await request({
                 busiId: 'different_dimension_me_img_entry',
@@ -500,11 +529,18 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
         console.log('Uploading to QQ for ' + userId);
         let imgData;
         try {
-            imgData = await qqRequest(telegramFileData);
+            imgData = await qqRequest(config.mode, telegramFileData);
         } catch (e) {
             if ((e as Error).toString().includes('Face not found')) { // TODO: it shouldn't rely on the text
                 console.log('Face not found, trying to hack for ' + userId);
-                imgData = await qqRequest((await faceHack(telegramFileData)));
+
+                // FaceHack doesn't work with AI_PAINTING_SPRING at all, trying to fallback.
+                let mode = config.mode;
+                if (mode === 'AI_PAINTING_SPRING') {
+                    mode = 'AIGCSDK_AI_PAINTING_ANIME';
+                }
+
+                imgData = await qqRequest(mode, (await faceHack(telegramFileData)));
             } else {
                 throw e;
             }
@@ -524,7 +560,11 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
             imgData.videoUrl ? qqDownload(imgData.videoUrl) : null,
         ]);
 
-        if ((config.mode === 'DIFFERENT_DIMENSION_ME') && config.sendMedia.single && comparedImgData) {
+        if (
+            (
+                config.mode === 'DIFFERENT_DIMENSION_ME' ||
+                config.mode === 'AI_PAINTING_SPRING'
+            ) && config.sendMedia.single && comparedImgData) {
             singleImgData = await cropImage(comparedImgData, 'SINGLE_FROM_COMPARED');
 
             if (!config.sendMedia.compared) {

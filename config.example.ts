@@ -1,12 +1,19 @@
 const config: Config = {
-    mode: 'DIFFERENT_DIMENSION_ME', // 'DIFFERENT_DIMENSION_ME' | 'AI_PAINTING_ANIME' | 'AIGCSDK_AI_PAINTING_ANIME'
+    // AI_PAINTING_SPRING
+    // DIFFERENT_DIMENSION_ME
+    // AI_PAINTING_ANIME
+    // AIGCSDK_AI_PAINTING_ANIME
+    mode: 'AI_PAINTING_SPRING',
+
     botToken: 'put_your_token_here',
+
     keepFiles: {
         compared: true,
         input: true,
         single: true,
         video: true,
     },
+
     messages: {
         blocked: 'The Chinese website has blocked the bot, too bad 🤷‍♂️',
         bye:
@@ -16,20 +23,26 @@ const config: Config = {
         media: '@qq\\_neural\\_anime\\_bot',
         received: 'Photo has been received, please wait',
     },
+
     sendMedia: {
-        // DIFFERENT_DIMENSION_ME (high rate limits)
-        // AI_PAINTING_ANIME (high rate limits)
+        // AI_PAINTING_SPRING
+        // DIFFERENT_DIMENSION_ME
+        // AI_PAINTING_ANIME
         compared: true,
 
-        // DIFFERENT_DIMENSION_ME (cropped)
-        // AI_PAINTING_ANIME (slow + high rate limits)
-        // AIGCSDK_AI_PAINTING_ANIME (fast)
+        // AI_PAINTING_SPRING
+        // DIFFERENT_DIMENSION_ME
+        // AI_PAINTING_ANIME
+        // AIGCSDK_AI_PAINTING_ANIME
         single: true,
 
-        // AI_PAINTING_ANIME (slow + high rate limits)
+        // AI_PAINTING_SPRING
+        // AI_PAINTING_ANIME
         video: true,
     },
+
     parallelRequests: 10,
+
     // Uncomment the line below and set your proxy if you need it.
     // proxyUrl: 'socks5://user:password@11.22.33.44:1234',
 };
