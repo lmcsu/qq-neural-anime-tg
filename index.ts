@@ -184,7 +184,10 @@ const qqRequest = async (imgBuffer: Buffer) => {
                         throw new Error('QQ rate limit caught (polaris limit)');
                     }
 
-                    if (data.msg === 'IMG_ILLEGAL') {
+                    if (
+                        (data.msg === 'IMG_ILLEGAL') ||
+                        (data.msg as string || '').includes('image illegal')
+                    ) {
                         bail(new Error('Couldn\'t pass the censorship. Try another photo.'));
                         return;
                     }
