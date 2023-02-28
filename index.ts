@@ -366,7 +366,7 @@ const printUsersStatuses = () => {
     console.log(`Users: ${Object.keys(usersStatuses).length} | Requests: ${getUsersRequestCount()}`);
 };
 
-const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE'): Promise<Buffer> => {
+const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE' | 'SINGLE_FROM_COMPARED'): Promise<Buffer> => {
     const img = sharp(imgData);
     const meta = await img.metadata();
     const width = meta.width || 0;
@@ -376,16 +376,27 @@ const cropImage = async (imgData: Buffer, type: 'COMPARED' | 'SINGLE'): Promise<
     let cropTop;
     let cropWidth;
     let cropHeight;
-    if (type === 'COMPARED') {
-        cropLeft = 0;
-        cropTop = 0;
-        cropWidth = width;
-        cropHeight = height - (width > height ? 177 : 182);
-    } else {
-        cropLeft = (width > height ? 19 : 27);
-        cropTop = (width > height ? 19 : 29);
-        cropWidth = width - cropLeft - (width > height ? 22 : 30);
-        cropHeight = height - cropTop - (width > height ? 202 : 213);
+    switch (type) {
+        case 'COMPARED':
+            cropLeft = 0;
+            cropTop = 0;
+            cropWidth = width;
+            cropHeight = height - (width > height ? 177 : 182);
+            break;
+
+        case 'SINGLE':
+            cropLeft = (width > height ? 19 : 27);
+            cropTop = (width > height ? 19 : 29);
+            cropWidth = width - cropLeft - (width > height ? 22 : 30);
+            cropHeight = height - cropTop - (width > height ? 202 : 213);
+            break;
+
+        case 'SINGLE_FROM_COMPARED':
+            cropLeft = (width > height ? 510 : 23);
+            cropTop = (width > height ? 25 : 547);
+            cropWidth = (width > height ? 467 : 753);
+            cropHeight = (width > height ? 701 : 497);
+            break;
     }
 
     return img.extract({
@@ -498,7 +509,9 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
         console.log('QQ responded successfully for ' + userId);
 
         console.log('Downloading from QQ for ' + userId);
-        const [comparedImgData, singleImgData, videoData] = await Promise.all([
+
+        // eslint-disable-next-line prefer-const
+        let [comparedImgData, singleImgData, videoData] = await Promise.all([
             imgData.comparedImgUrl ? qqDownload(imgData.comparedImgUrl).then((data) => cropImage(data, 'COMPARED')) : null,
 
             imgData.singleImgUrl ?
@@ -507,6 +520,14 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
 
             imgData.videoUrl ? qqDownload(imgData.videoUrl) : null,
         ]);
+
+        if ((config.mode === 'DIFFERENT_DIMENSION_ME') && config.sendMedia.single && comparedImgData) {
+            singleImgData = await cropImage(comparedImgData, 'SINGLE_FROM_COMPARED');
+
+            if (!config.sendMedia.compared) {
+                comparedImgData = null;
+            }
+        }
 
         const time = (new Date()).getTime();
         if (config.keepFiles.compared && comparedImgData) {
@@ -563,7 +584,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
         if (comparedImgData) {
             mediaPromises.push(sendMedia(async () => {
                 await ctx.replyWithPhoto({
-                    source: comparedImgData,
+                    source: comparedImgData as Buffer,
                 }, {
                     caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
@@ -574,7 +595,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
         if (singleImgData) {
             mediaPromises.push(sendMedia(async () => {
                 await ctx.replyWithPhoto({
-                    source: singleImgData,
+                    source: singleImgData as Buffer,
                 }, {
                     caption: config.messages.media,
                     reply_to_message_id: replyMessageId,
@@ -585,7 +606,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
         if (videoData) {
             mediaPromises.push(sendMedia(async () => {
                 await ctx.replyWithVideo({
-                    source: videoData,
+                    source: videoData as Buffer,
                 }, {
                     caption: config.messages.media,
                     reply_to_message_id: replyMessageId,

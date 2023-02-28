@@ -17,9 +17,17 @@ const config: Config = {
         received: 'Photo has been received, please wait',
     },
     sendMedia: {
-        compared: true, // works only with DIFFERENT_DIMENSION_ME (high rate limits) and AI_PAINTING_ANIME (high rate limits)
-        single: true, // works only with AIGCSDK_AI_PAINTING_ANIME (fast) and AI_PAINTING_ANIME (slow + high rate limits)
-        video: true, // works only with AI_PAINTING_ANIME (slow + high rate limits)
+        // DIFFERENT_DIMENSION_ME (high rate limits)
+        // AI_PAINTING_ANIME (high rate limits)
+        compared: true,
+
+        // DIFFERENT_DIMENSION_ME (cropped)
+        // AI_PAINTING_ANIME (slow + high rate limits)
+        // AIGCSDK_AI_PAINTING_ANIME (fast)
+        single: true,
+
+        // AI_PAINTING_ANIME (slow + high rate limits)
+        video: true,
     },
     parallelRequests: 10,
     // Uncomment the line below and set your proxy if you need it.
