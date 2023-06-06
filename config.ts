@@ -41,7 +41,7 @@ const config: Config = {
         video: true,
     },
 
-    parallelRequests: 10,
+    parallelRequests: 5,
 
     // Uncomment the line below and set your proxy if you need it.
     // proxyUrl: 'socks5://user:password@11.22.33.44:1234',
