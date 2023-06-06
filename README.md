@@ -41,10 +41,7 @@ But not from Taiwan or Hong Kong, try Beijing for example.
 
 It's almost impossible to find free alive proxies. Don't waste your time searching and just buy it somewhere.
 
-# Notes
-- Probably the whole thing is going to break soon anyway.
-- Fork it and make your own version, because I don't think that I'm going to support it in the future.
-- Contact me at Telegram: https://t.me/royvolkov
+
 
 # Upgrading
 Don't forget to always run `npm install`
