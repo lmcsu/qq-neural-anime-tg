@@ -22,15 +22,14 @@ Clone this repo and:
 # Mode
 The bot works in different modes, you can switch it in your `config.ts` to the one that suits you better.
 
-It might produce single images, compared images and videos in different styles and quality.
+It might produce single images, compared images and videos.
 
 All modes are unstable and their behavior may change at any time.
 
-| Mode                      |  Style  | Single  | Compared | Video | Rate limits | Availability   |
-| :---                      |  :---:  |  :---:  |  :---:   | :---: |    :---:    |     :---:      |
-| AI_PAINTING_SPRING        | Spring  | Cropped | +        | Slow  | -           | Most countries |
-| DIFFERENT_DIMENSION_ME    | Classic | Cropped | +        | -     | High        | Most countries |
-| AI_PAINTING_ANIME         | Classic | Slow    | +        | Slow  | High        | China only     |
+| Mode                      | Single  | Compared | Video | Availability   |
+| :---                      |  :---:  |  :---:   | :---: |     :---:      |
+| DIFFERENT_DIMENSION_ME    | Cropped | +        | -     | Most countries |
+| AI_PAINTING_ANIME         | Slow    | +        | Slow  | China only     |
 
 # Proxies
 In some countries the AI doesn't work at all so if it is your case you have to use some proxy.

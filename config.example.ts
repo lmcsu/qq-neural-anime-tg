@@ -1,8 +1,7 @@
 const config: Config = {
-    // AI_PAINTING_SPRING
     // DIFFERENT_DIMENSION_ME
     // AI_PAINTING_ANIME
-    mode: 'AI_PAINTING_SPRING',
+    mode: 'DIFFERENT_DIMENSION_ME',
 
     botToken: 'put_your_token_here',
 
@@ -24,17 +23,14 @@ const config: Config = {
     },
 
     sendMedia: {
-        // AI_PAINTING_SPRING
         // DIFFERENT_DIMENSION_ME
         // AI_PAINTING_ANIME
         compared: true,
 
-        // AI_PAINTING_SPRING
         // DIFFERENT_DIMENSION_ME
         // AI_PAINTING_ANIME
         single: true,
 
-        // AI_PAINTING_SPRING
         // AI_PAINTING_ANIME
         video: true,
     },

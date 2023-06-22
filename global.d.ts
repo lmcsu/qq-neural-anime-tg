@@ -2,7 +2,7 @@ export {};
 
 declare global {
     type Config = {
-        mode: 'AI_PAINTING_SPRING' | 'DIFFERENT_DIMENSION_ME' | 'AI_PAINTING_ANIME';
+        mode: 'DIFFERENT_DIMENSION_ME' | 'AI_PAINTING_ANIME';
         botToken: string;
         keepFiles: {
             compared: boolean;
