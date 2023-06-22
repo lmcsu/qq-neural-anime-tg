@@ -721,58 +721,21 @@ const stopBot = () => {
     }
 };
 
+console.log('Current mode:', config.mode);
+
+startBot();
+
 let shuttingDown = false;
+const tryToShutDown = () => {
+    if (!shuttingDown) {
+        stopBot();
+    }
+    shuttingDown = true;
 
-let tryToShutDown: () => void;
-
-if (cluster.isPrimary) {
-    console.log('Current mode:', config.mode);
-
-    let hasWorker = false;
-
-    tryToShutDown = (): void => {
-        shuttingDown = true;
-        if (!hasWorker) {
-            process.exit();
-        }
-    };
-
-    const addWorker = (): void => {
-        if (!shuttingDown) {
-            const worker = cluster.fork();
-            console.log(`Worker #${worker.process.pid} started`);
-            hasWorker = true;
-        }
-    };
-    addWorker();
-
-    cluster.on('exit', (worker, code, signal) => {
-        hasWorker = false;
-
-        console.warn(`Worker #${worker.process.pid} is dead`, 'code:', code, 'signal:', signal);
-
-        if (shuttingDown) {
-            tryToShutDown();
-        } else {
-            setTimeout(() => {
-                addWorker();
-            }, 100);
-        }
-    });
-} else {
-    startBot();
-
-    tryToShutDown = () => {
-        if (!shuttingDown) {
-            stopBot();
-        }
-        shuttingDown = true;
-
-        if (!getUsersRequestCount()) {
-            process.exit();
-        }
-    };
-}
+    if (!getUsersRequestCount()) {
+        process.exit();
+    }
+};
 
 process.on('SIGINT', () => tryToShutDown());
 process.on('SIGTERM', () => tryToShutDown());
