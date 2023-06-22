@@ -31,6 +31,8 @@ All modes are unstable and their behavior may change at any time.
 | DIFFERENT_DIMENSION_ME    | Cropped | +        | -     | Most countries |
 | AI_PAINTING_ANIME         | Slow    | +        | Slow  | China only     |
 
+### ⚠️ Currently the Chinese server might throw 403 errors with DIFFERENT_DIMENSION_ME mode!
+
 # Proxies
 In some countries the AI doesn't work at all so if it is your case you have to use some proxy.
 
