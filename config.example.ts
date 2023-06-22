@@ -1,7 +1,7 @@
 const config: Config = {
     // DIFFERENT_DIMENSION_ME
     // AI_PAINTING_ANIME
-    mode: 'DIFFERENT_DIMENSION_ME',
+    mode: 'AI_PAINTING_ANIME',
 
     botToken: 'put_your_token_here',
 
