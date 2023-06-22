@@ -240,7 +240,6 @@ const qqRequest = async (mode: typeof config.mode, imgBuffer: Buffer) => {
     let comparedImgUrl: string | null = null;
     let videoUrl: string | null = null;
     let singleImgUrl: string | null = null;
-    let singleImg: Buffer | null = null;
 
     switch (mode) {
         case 'AI_PAINTING_SPRING': {
@@ -326,28 +325,12 @@ const qqRequest = async (mode: typeof config.mode, imgBuffer: Buffer) => {
             }
             break;
         }
-
-        case 'AIGCSDK_AI_PAINTING_ANIME': {
-            const data = await request({
-                busiId: 'aigcsdk_ai_painting_anime_img_entry',
-                extra: JSON.stringify({
-                    face_rects: [],
-                    version: 2,
-                    platform: 'web',
-                }),
-                images: [imgBuffer.toString('base64')],
-            });
-
-            singleImg = Buffer.from((data.images as [string, string])[1], 'base64');
-            break;
-        }
     }
 
     return {
         comparedImgUrl,
         videoUrl,
         singleImgUrl,
-        singleImg,
     };
 };
 
@@ -537,7 +520,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
                 // FaceHack doesn't work with AI_PAINTING_SPRING at all, trying to fallback.
                 let mode = config.mode;
                 if (mode === 'AI_PAINTING_SPRING') {
-                    mode = 'AIGCSDK_AI_PAINTING_ANIME';
+                    mode = 'AI_PAINTING_ANIME';
                 }
 
                 imgData = await qqRequest(mode, (await faceHack(telegramFileData)));
@@ -555,7 +538,7 @@ const onPhotoReceived = async (ctx: Context, userId: number, photoId: string, re
 
             imgData.singleImgUrl ?
                 qqDownload(imgData.singleImgUrl).then((data) => cropImage(data, 'SINGLE')) :
-                (imgData.singleImg ?? null),
+                null,
 
             imgData.videoUrl ? qqDownload(imgData.videoUrl) : null,
         ]);

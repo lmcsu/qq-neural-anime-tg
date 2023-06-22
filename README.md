@@ -31,7 +31,6 @@ All modes are unstable and their behavior may change at any time.
 | AI_PAINTING_SPRING        | Spring  | Cropped | +        | Slow  | -           | Most countries |
 | DIFFERENT_DIMENSION_ME    | Classic | Cropped | +        | -     | High        | Most countries |
 | AI_PAINTING_ANIME         | Classic | Slow    | +        | Slow  | High        | China only     |
-| AIGCSDK_AI_PAINTING_ANIME | Classic | Fast    | -        | -     | Low         | Most countries |
 
 # Proxies
 In some countries the AI doesn't work at all so if it is your case you have to use some proxy.
