@@ -5,7 +5,6 @@ import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
-import cluster from 'cluster';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import md5 from 'md5';
