@@ -253,7 +253,9 @@ const qqRequest = async (mode: typeof config.mode, imgBuffer: Buffer) => {
             });
             const extra = JSON.parse(data.extra);
 
-            comparedImgUrl = extra.img_urls[1] as string;
+            if (config.sendMedia.single || config.sendMedia.compared) {
+                comparedImgUrl = extra.img_urls[1] as string;
+            }
             break;
         }
 
@@ -269,7 +271,9 @@ const qqRequest = async (mode: typeof config.mode, imgBuffer: Buffer) => {
             });
             const extra = JSON.parse(data.extra);
 
-            comparedImgUrl = extra.img_urls[1] as string;
+            if (config.sendMedia.compared) {
+                comparedImgUrl = extra.img_urls[1] as string;
+            }
 
             if (config.sendMedia.single || config.sendMedia.video) {
                 const uuid = extra.uuid as string;
