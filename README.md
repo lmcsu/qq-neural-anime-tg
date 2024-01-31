@@ -1,3 +1,5 @@
+# UPD 2024-01-31 - The AI is dead ☠️
+
 # What is this
 A Telegram bot for making anime-styled pictures and videos from your source.
 
